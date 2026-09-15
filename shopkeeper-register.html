@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register Your Business — BuildMaterial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --saffron:#FF9933; --saffron-dark:#E67E22; --ink:#1C1C1E; --ink-soft:#5B5B60;
+    --bg:#FFFDF9; --card:#FFFFFF; --line:#EFE6DA; --green:#2F8F5B; --red:#D64545; --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); padding-bottom:40px;}
+  h1,h2,.brand{font-family:'Poppins',sans-serif;}
+
+  .topbar{
+    padding:14px 16px; border-bottom:1px solid var(--line); background:var(--card);
+    display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:20;
+  }
+  .back-link{font-size:20px; text-decoration:none; color:var(--ink);}
+  .brand{font-size:17px; font-weight:700;}
+
+  .header{padding:20px 16px 8px;}
+  .header h1{font-size:20px; font-weight:700;}
+  .header p{font-size:13.5px; color:var(--ink-soft); margin-top:4px;}
+
+  .steps{display:flex; gap:6px; padding:0 16px 16px;}
+  .step-dot{flex:1; height:4px; border-radius:4px; background:var(--line);}
+  .step-dot.active{background:var(--saffron);}
+
+  form{padding:0 16px;}
+  fieldset{border:none; margin-bottom:22px;}
+  legend{font-size:14px; font-weight:700; color:var(--ink); margin-bottom:12px; padding:0;}
+  .field{margin-bottom:14px;}
+  label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px;}
+  input, select, textarea{
+    width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid var(--line);
+    font-size:14.5px; font-family:'Inter',sans-serif; background:#FBF8F3;
+  }
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--saffron);}
+  textarea{resize:vertical; min-height:70px;}
+  .row2{display:flex; gap:10px;}
+  .row2 .field{flex:1;}
+  .hint{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
+
+  .gps-box{
+    background:#FFF4E3; border:1px solid #FFE0B0; border-radius:10px; padding:12px; margin-bottom:14px;
+  }
+  .gps-box p{font-size:12.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .gps-status{font-size:13px; font-weight:600; color:var(--ink);}
+  .btn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px; padding:11px 16px;
+    border-radius:10px; border:1.5px solid var(--saffron); background:#fff; color:var(--saffron-dark);
+  }
+  .btn-solid{background:var(--saffron); color:#fff; border-color:var(--saffron); width:100%; padding:14px; font-size:15px; border-radius:12px;}
+  .btn-solid:disabled{opacity:.6;}
+
+  .photo-upload{
+    border:2px dashed var(--line); border-radius:12px; padding:20px; text-align:center; cursor:pointer;
+    color:var(--ink-soft); font-size:13px; margin-bottom:14px;
+  }
+  .photo-preview{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  .photo-preview img{width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--line);}
+
+  .msg{font-size:13px; padding:10px 12px; border-radius:8px; margin-bottom:14px; display:none;}
+  .msg.error{background:#FDEDED; color:var(--red); display:block;}
+  .msg.success{background:#EAF7EF; color:var(--green); display:block;}
+  .msg.info{background:#FFF4E3; color:#8A5A17; display:block;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="back-link">←</a>
+  <div class="brand">Register Your Business</div>
+</div>
+
+<div class="header">
+  <h1>List your shop on BuildMaterial</h1>
+  <p>Free for the first 2 months. Customers nearby will be able to find and contact you directly.</p>
+</div>
+
+<div id="formMsg" class="msg"></div>
+
+<form id="registerForm">
+
+  <fieldset>
+    <legend>Owner Details</legend>
+    <div class="field">
+      <label for="ownerName">Owner Name *</label>
+      <input type="text" id="ownerName" required placeholder="e.g. Ramesh Patil">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="ownerMobile">Mobile Number *</label>
+        <input type="tel" id="ownerMobile" required placeholder="10-digit mobile" pattern="[0-9]{10}">
+      </div>
+      <div class="field">
+        <label for="ownerEmail">Email *</label>
+        <input type="email" id="ownerEmail" required placeholder="you@example.com">
+      </div>
+    </div>
+    <div class="field">
+      <label for="ownerPassword">Create Password *</label>
+      <input type="password" id="ownerPassword" required minlength="6" placeholder="At least 6 characters">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Business Details</legend>
+    <div class="field">
+      <label for="businessName">Business / Shop Name *</label>
+      <input type="text" id="businessName" required placeholder="e.g. Patil Cement & Hardware">
+    </div>
+    <div class="field">
+      <label for="category">Primary Category *</label>
+      <select id="category" required>
+        <option value="">Select category</option>
+        <option>Cement</option>
+        <option>TMT / Steel</option>
+        <option>Sand & Aggregates</option>
+        <option>Bricks / AAC Blocks</option>
+        <option>Paint & Waterproofing</option>
+        <option>Plumbing</option>
+        <option>Electrical</option>
+        <option>Tiles</option>
+        <option>Hardware & Tools</option>
+        <option>Plywood / MDF</option>
+        <option>Interior Design</option>
+        <option>Contractor / Machinery Services</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="shopPhone">Shop Phone *</label>
+        <input type="tel" id="shopPhone" required placeholder="10-digit number">
+      </div>
+      <div class="field">
+        <label for="shopWhatsapp">WhatsApp Number *</label>
+        <input type="tel" id="shopWhatsapp" required placeholder="10-digit number">
+      </div>
+    </div>
+    <div class="field">
+      <label for="gstin">GSTIN (optional)</label>
+      <input type="text" id="gstin" placeholder="If registered under GST">
+    </div>
+    <div class="field">
+      <label for="description">Business Description</label>
+      <textarea id="description" placeholder="What does your shop sell? Any specialty?"></textarea>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="openTime">Opens At</label>
+        <input type="time" id="openTime" value="09:00">
+      </div>
+      <div class="field">
+        <label for="closeTime">Closes At</label>
+        <input type="time" id="closeTime" value="20:00">
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Location</legend>
+    <div class="row2">
+      <div class="field">
+        <label for="district">District *</label>
+        <input type="text" id="district" required placeholder="e.g. Ahilyanagar">
+      </div>
+      <div class="field">
+        <label for="taluka">Taluka *</label>
+        <input type="text" id="taluka" required placeholder="e.g. Newasa">
+      </div>
+    </div>
+    <div class="field">
+      <label for="cityArea">City / Village / Area *</label>
+      <input type="text" id="cityArea" required placeholder="e.g. Mukindapur">
+    </div>
+    <div class="field">
+      <label for="address">Full Address *</label>
+      <textarea id="address" required placeholder="Shop no, street, landmark"></textarea>
+    </div>
+    <div class="gps-box">
+      <p>We need your exact shop location so nearby customers can find you and get directions.</p>
+      <div class="gps-status" id="gpsStatus">Location not set</div>
+      <button type="button" class="btn" id="gpsBtn" style="margin-top:8px;">📍 Use My Current Location</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Shop Photo</legend>
+    <div class="photo-preview" id="photoPreview"></div>
+    <div class="photo-upload" id="photoUploadBox">
+      📷 Tap to upload a shop photo (optional, can add more later)
+    </div>
+    <input type="file" id="photoInput" accept="image/*" style="display:none;">
+  </fieldset>
+
+  <button type="submit" class="btn-solid" id="submitBtn">Register My Business</button>
+</form>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
+    authDomain: "build-material-6cddd.firebaseapp.com",
+    projectId: "build-material-6cddd",
+    storageBucket: "build-material-6cddd.firebasestorage.app",
+    messagingSenderId: "569135726307",
+    appId: "1:569135726307:web:0387f0344d7aa852134fd6"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // ---- Cloudinary upload (unsigned) ----
+  const CLOUD_NAME = "kvho2vpu";
+  const UPLOAD_PRESET = "buildmaterial";
+
+  async function uploadToCloudinary(file){
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: 'POST', body: formData
+    });
+    const data = await res.json();
+    return data.secure_url;
+  }
+
+  // ---- GPS capture ----
+  let capturedLat = null, capturedLon = null;
+  const gpsBtn = document.getElementById('gpsBtn');
+  const gpsStatus = document.getElementById('gpsStatus');
+  gpsBtn.addEventListener('click', ()=>{
+    if(!navigator.geolocation){
+      gpsStatus.textContent = "Location not supported on this device";
+      return;
+    }
+    gpsStatus.textContent = "Detecting...";
+    navigator.geolocation.getCurrentPosition(
+      (pos)=>{
+        capturedLat = pos.coords.latitude;
+        capturedLon = pos.coords.longitude;
+        gpsStatus.textContent = `✅ Location captured (${capturedLat.toFixed(4)}, ${capturedLon.toFixed(4)})`;
+      },
+      ()=>{ gpsStatus.textContent = "❌ Permission denied. Please allow location access."; }
+    );
+  });
+
+  // ---- Photo upload preview ----
+  let selectedPhotoFile = null;
+  const photoUploadBox = document.getElementById('photoUploadBox');
+  const photoInput = document.getElementById('photoInput');
+  const photoPreview = document.getElementById('photoPreview');
+  photoUploadBox.addEventListener('click', ()=> photoInput.click());
+  photoInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    selectedPhotoFile = file;
+    photoPreview.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
+  });
+
+  // ---- Form submit ----
+  const form = document.getElementById('registerForm');
+  const formMsg = document.getElementById('formMsg');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function showMsg(text, type){
+    formMsg.textContent = text;
+    formMsg.className = `msg ${type}`;
+  }
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+
+    if(capturedLat === null){
+      showMsg("Please tap 'Use My Current Location' before submitting.", "error");
+      window.scrollTo(0,0);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Registering...";
+    showMsg("Creating your account...", "info");
+
+    const email = document.getElementById('ownerEmail').value.trim();
+    const password = document.getElementById('ownerPassword').value;
+
+    try{
+      // 1. Create Firebase Auth account
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
+
+      // 2. Upload photo if selected
+      let photoUrl = "";
+      if(selectedPhotoFile){
+        showMsg("Uploading shop photo...", "info");
+        photoUrl = await uploadToCloudinary(selectedPhotoFile);
+      }
+
+      // 3. Free trial: 60 days from now
+      const trialDays = 60;
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + trialDays);
+
+      // 4. Save business document in Firestore
+      showMsg("Saving your business details...", "info");
+      await setDoc(doc(db, "businesses", uid), {
+        ownerUid: uid,
+        ownerName: document.getElementById('ownerName').value.trim(),
+        ownerMobile: document.getElementById('ownerMobile').value.trim(),
+        ownerEmail: email,
+        businessName: document.getElementById('businessName').value.trim(),
+        category: document.getElementById('category').value,
+        shopPhone: document.getElementById('shopPhone').value.trim(),
+        shopWhatsapp: document.getElementById('shopWhatsapp').value.trim(),
+        gstin: document.getElementById('gstin').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        openTime: document.getElementById('openTime').value,
+        closeTime: document.getElementById('closeTime').value,
+        district: document.getElementById('district').value.trim(),
+        taluka: document.getElementById('taluka').value.trim(),
+        cityArea: document.getElementById('cityArea').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        latitude: capturedLat,
+        longitude: capturedLon,
+        photoUrl: photoUrl,
+        approved: false,
+        verified: false,
+        subscriptionActive: true,
+        subscriptionType: "free_trial",
+        trialEndsAt: Timestamp.fromDate(trialEndsAt),
+        rating: 0,
+        ratingCount: 0,
+        createdAt: Timestamp.now()
+      });
+
+      showMsg("Registration successful! Your shop will be visible after a quick verification.", "success");
+      submitBtn.textContent = "Registered ✓";
+      setTimeout(()=>{ window.location.href = "shopkeeper-dashboard.html"; }, 1800);
+
+    }catch(err){
+      console.error(err);
+      let message = "Something went wrong. Please try again.";
+      if(err.code === "auth/email-already-in-use") message = "This email is already registered. Try logging in instead.";
+      if(err.code === "auth/weak-password") message = "Password should be at least 6 characters.";
+      if(err.code === "auth/invalid-email") message = "Please enter a valid email address.";
+      showMsg(message, "error");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Register My Business";
+      window.scrollTo(0,0);
+    }
+  });
+</script>
+</body>
+</html>
