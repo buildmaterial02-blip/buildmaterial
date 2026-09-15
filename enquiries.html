@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Enquiries — BuildMaterial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --saffron:#FF9933; --saffron-dark:#E67E22; --ink:#1C1C1E; --ink-soft:#5B5B60;
+    --bg:#FFFDF9; --card:#FFFFFF; --line:#EFE6DA; --green:#2F8F5B; --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); padding-bottom:70px;}
+  h1,.brand{font-family:'Poppins',sans-serif;}
+
+  .topbar{
+    position:sticky; top:0; z-index:50; background:var(--card); border-bottom:1px solid var(--line);
+    padding:14px 16px;
+  }
+  .brand{font-size:16px; font-weight:700;}
+
+  .lookup-box{padding:16px;}
+  .lookup-box p{font-size:13px; color:var(--ink-soft); margin-bottom:10px;}
+  .lookup-row{display:flex; gap:8px;}
+  .lookup-row input{
+    flex:1; padding:12px 14px; border-radius:10px; border:1.5px solid var(--line);
+    font-size:14.5px; background:#FBF8F3; font-family:'Inter',sans-serif;
+  }
+  .lookup-row input:focus{outline:none; border-color:var(--saffron);}
+  .lookup-row button{
+    padding:12px 18px; border-radius:10px; border:none; background:var(--saffron);
+    color:#fff; font-weight:700; font-size:13.5px; font-family:'Inter',sans-serif;
+  }
+
+  .enquiry-list{padding:4px 16px;}
+  .enquiry-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:12px;
+  }
+  .eq-top{display:flex; justify-content:space-between; align-items:center;}
+  .eq-shop{font-weight:700; font-size:14.5px;}
+  .eq-status{font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:6px;}
+  .eq-status.New{background:#FFF4E3; color:#8A5A17;}
+  .eq-status.Contacted{background:#EAF2FF; color:#2563EB;}
+  .eq-status.Quoted{background:#F3E8FF; color:#7C3AED;}
+  .eq-status.Completed{background:#EAF7EF; color:var(--green);}
+  .eq-msg{font-size:13px; color:var(--ink-soft); margin-top:8px;}
+  .eq-time{font-size:11px; color:var(--ink-soft); margin-top:8px;}
+
+  .empty-note{text-align:center; padding:40px 16px; color:var(--ink-soft); font-size:13.5px;}
+
+  .bottomnav{
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    display:flex; z-index:60; padding:6px 0 8px;
+  }
+  .bottomnav a{flex:1; text-align:center; text-decoration:none; color:var(--ink-soft); font-size:11px; font-weight:500; padding-top:4px;}
+  .bottomnav a.active{color:var(--saffron-dark); font-weight:700;}
+  .bottomnav .nav-icon{font-size:19px; display:block; margin-bottom:2px;}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="brand">My Enquiries</div></div>
+
+<div class="lookup-box">
+  <p>Enter the phone number you used when sending enquiries to see their status.</p>
+  <div class="lookup-row">
+    <input type="tel" id="phoneInput" placeholder="10-digit mobile number">
+    <button id="lookupBtn">Find</button>
+  </div>
+</div>
+
+<div class="enquiry-list" id="enquiryList">
+  <div class="empty-note">Enter your phone number above to see your enquiries.</div>
+</div>
+
+<div class="bottomnav">
+  <a href="index.html"><span class="nav-icon">🏠</span>Home</a>
+  <a href="search.html"><span class="nav-icon">🔍</span>Search</a>
+  <a href="enquiries.html" class="active"><span class="nav-icon">💬</span>Enquiries</a>
+  <a href="profile.html"><span class="nav-icon">👤</span>Profile</a>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collectionGroup, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
+    authDomain: "build-material-6cddd.firebaseapp.com",
+    projectId: "build-material-6cddd",
+    storageBucket: "build-material-6cddd.firebasestorage.app",
+    messagingSenderId: "569135726307",
+    appId: "1:569135726307:web:0387f0344d7aa852134fd6"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  document.getElementById('lookupBtn').addEventListener('click', async ()=>{
+    const phone = document.getElementById('phoneInput').value.trim();
+    const listEl = document.getElementById('enquiryList');
+    if(!phone){
+      listEl.innerHTML = `<div class="empty-note">Please enter your phone number.</div>`;
+      return;
+    }
+    listEl.innerHTML = `<div class="empty-note">Searching...</div>`;
+
+    try{
+      // enquiries live as a subcollection under each business; collectionGroup searches across all of them
+      const q = query(
+        collectionGroup(db, "enquiries"),
+        where("customerPhone", "==", phone),
+        orderBy("createdAt", "desc")
+      );
+      const snap = await getDocs(q);
+
+      if(snap.empty){
+        listEl.innerHTML = `<div class="empty-note">No enquiries found for this number.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = '';
+      snap.forEach(docSnap=>{
+        const eq = docSnap.data();
+        const shopName = docSnap.ref.parent.parent.id; // business doc id, used as fallback label
+        const time = eq.createdAt ? eq.createdAt.toDate().toLocaleDateString('en-IN') : '';
+        const card = document.createElement('div');
+        card.className = 'enquiry-card';
+        card.innerHTML = `
+          <div class="eq-top">
+            <span class="eq-shop">Enquiry sent</span>
+            <span class="eq-status ${eq.status || 'New'}">${eq.status || 'New'}</span>
+          </div>
+          <div class="eq-msg">${eq.message || ''}</div>
+          <div class="eq-time">${time}</div>`;
+        listEl.appendChild(card);
+      });
+    }catch(err){
+      console.error(err);
+      listEl.innerHTML = `<div class="empty-note">Couldn't load enquiries right now. Please try again.</div>`;
+    }
+  });
+</script>
+</body>
+</html>
