@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop Details — BuildMaterial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --saffron:#FF9933; --saffron-dark:#E67E22; --ink:#1C1C1E; --ink-soft:#5B5B60;
+    --bg:#FFFDF9; --card:#FFFFFF; --line:#EFE6DA; --green:#2F8F5B; --whatsapp:#25D366; --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); padding-bottom:80px;}
+  h1,h2,.brand{font-family:'Poppins',sans-serif;}
+
+  .topbar{
+    position:sticky; top:0; z-index:50; background:rgba(255,255,255,.95); backdrop-filter:blur(4px);
+    padding:14px 16px; display:flex; align-items:center; border-bottom:1px solid var(--line);
+  }
+  .back-link{font-size:20px; text-decoration:none; color:var(--ink);}
+
+  .shop-header{padding:18px 16px 14px; display:flex; gap:14px; align-items:flex-start;}
+  .shop-photo{
+    width:76px; height:76px; border-radius:14px; background:#F1EAE0; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center; font-size:30px; overflow:hidden;
+  }
+  .shop-photo img{width:100%; height:100%; object-fit:cover;}
+  .shop-title-row{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .shop-name{font-size:19px; font-weight:800;}
+  .badge-verified{font-size:10.5px; background:#E7F5EC; color:var(--green); padding:3px 7px; border-radius:6px; font-weight:700;}
+  .shop-cat{font-size:13px; color:var(--ink-soft); margin-top:3px;}
+  .shop-rating-row{display:flex; align-items:center; gap:6px; margin-top:6px; font-size:13px;}
+  .stars{color:#F5A623; font-weight:700;}
+
+  .action-row{display:flex; gap:10px; padding:6px 16px 16px;}
+  .action-btn{
+    flex:1; text-align:center; padding:12px 8px; border-radius:12px; font-size:12.5px; font-weight:700;
+    text-decoration:none; display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .action-btn.call{background:#EAF2FF; color:#2563EB;}
+  .action-btn.whatsapp{background:#E8FBEF; color:var(--whatsapp);}
+  .action-btn.directions{background:#FFF4E3; color:var(--saffron-dark);}
+  .action-icon{font-size:18px;}
+
+  .info-row{padding:0 16px 12px; font-size:13px; color:var(--ink-soft); display:flex; gap:8px;}
+  .info-row .icon{flex:0 0 auto;}
+
+  .section{padding:18px 16px 6px;}
+  .section-title{font-size:15px; font-weight:700; margin-bottom:12px;}
+
+  .product-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px; margin-bottom:9px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .product-name{font-weight:700; font-size:14px;}
+  .product-cat{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .product-price{font-weight:800; color:var(--saffron-dark); font-size:14.5px; white-space:nowrap;}
+  .stock-tag{font-size:10.5px; margin-top:3px;}
+  .stock-tag.out{color:#D64545;}
+  .stock-tag.in{color:var(--green);}
+
+  .gallery-scroll{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;}
+  .gallery-scroll::-webkit-scrollbar{display:none;}
+  .gallery-scroll img{width:110px; height:110px; object-fit:cover; border-radius:12px; flex:0 0 auto; border:1px solid var(--line);}
+
+  .review-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px; margin-bottom:9px;}
+  .review-top{display:flex; justify-content:space-between; align-items:center;}
+  .review-name{font-weight:700; font-size:13.5px;}
+  .review-stars{color:#F5A623; font-size:12.5px;}
+  .review-text{font-size:13px; color:var(--ink-soft); margin-top:5px;}
+
+  .empty-note{color:var(--ink-soft); font-size:13px; padding:6px 0 14px;}
+
+  .sticky-bottom{
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    padding:12px 16px; z-index:60;
+  }
+  .btn-solid{
+    width:100%; padding:14px; border-radius:12px; border:none; background:var(--saffron);
+    color:#fff; font-size:15px; font-weight:700; font-family:'Inter',sans-serif;
+  }
+
+  .modal-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:flex-end;}
+  .modal-overlay.open{display:flex;}
+  .modal-sheet{background:#fff; width:100%; border-radius:20px 20px 0 0; padding:20px 16px 30px; max-height:85vh; overflow-y:auto;}
+  .modal-title{font-size:16px; font-weight:700; margin-bottom:14px;}
+  .modal-close{float:right; font-size:20px; color:var(--ink-soft); background:none; border:none;}
+  .field{margin-bottom:14px;}
+  label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px;}
+  input, textarea{
+    width:100%; padding:12px 13px; border-radius:10px; border:1.5px solid var(--line);
+    font-size:14px; font-family:'Inter',sans-serif; background:#FBF8F3;
+  }
+  input:focus, textarea:focus{outline:none; border-color:var(--saffron);}
+  .msg{font-size:13px; padding:10px 12px; border-radius:8px; margin-bottom:14px; display:none;}
+  .msg.success{background:#EAF7EF; color:var(--green); display:block;}
+  .msg.error{background:#FDEDED; color:#D64545; display:block;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="javascript:history.back()" class="back-link">←</a>
+</div>
+
+<div id="shopContent">
+  <div style="padding:40px 16px; text-align:center; color:#5B5B60;">Loading shop details...</div>
+</div>
+
+<div class="sticky-bottom">
+  <button class="btn-solid" id="openEnquiryBtn">Send Enquiry</button>
+</div>
+
+<!-- ENQUIRY MODAL -->
+<div class="modal-overlay" id="enquiryModal">
+  <div class="modal-sheet">
+    <button class="modal-close" id="closeEnquiryModal">×</button>
+    <div class="modal-title">Send an Enquiry</div>
+    <div id="enquiryMsg" class="msg"></div>
+    <div class="field"><label>Your Name *</label><input type="text" id="eq_name" placeholder="Your full name"></div>
+    <div class="field"><label>Your Phone *</label><input type="tel" id="eq_phone" placeholder="10-digit mobile number"></div>
+    <div class="field"><label>Your Message *</label><textarea id="eq_message" style="min-height:80px;" placeholder="e.g. I need 50 bags of cement, please share rate."></textarea></div>
+    <button class="btn-solid" id="sendEnquiryBtn">Send Enquiry</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, addDoc, Timestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
+    authDomain: "build-material-6cddd.firebaseapp.com",
+    projectId: "build-material-6cddd",
+    storageBucket: "build-material-6cddd.firebasestorage.app",
+    messagingSenderId: "569135726307",
+    appId: "1:569135726307:web:0387f0344d7aa852134fd6"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const shopId = urlParams.get('id');
+
+  if(!shopId){
+    document.getElementById('shopContent').innerHTML = `<div style="padding:40px 16px; text-align:center;">Shop not found.</div>`;
+  } else {
+    loadShop(shopId);
+  }
+
+  async function loadShop(id){
+    const snap = await getDoc(doc(db, "businesses", id));
+    if(!snap.exists()){
+      document.getElementById('shopContent').innerHTML = `<div style="padding:40px 16px; text-align:center;">Shop not found.</div>`;
+      return;
+    }
+    const shop = snap.data();
+
+    const galleryHtml = (shop.gallery && shop.gallery.length > 0)
+      ? shop.gallery.map(url => `<img src="${url}">`).join('')
+      : '';
+
+    document.getElementById('shopContent').innerHTML = `
+      <div class="shop-header">
+        <div class="shop-photo">${shop.photoUrl ? `<img src="${shop.photoUrl}">` : '🏪'}</div>
+        <div>
+          <div class="shop-title-row">
+            <span class="shop-name">${shop.businessName || 'Unnamed Shop'}</span>
+            ${shop.verified ? '<span class="badge-verified">✓ Verified</span>' : ''}
+          </div>
+          <div class="shop-cat">${shop.category || ''}</div>
+          <div class="shop-rating-row">
+            <span class="stars">★ ${shop.rating ? shop.rating.toFixed(1) : 'New'}</span>
+            <span style="color:#5B5B60;">(${shop.ratingCount || 0} reviews)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <a href="tel:${shop.shopPhone}" class="action-btn call"><span class="action-icon">📞</span>Call</a>
+        <a href="https://wa.me/91${shop.shopWhatsapp}" target="_blank" class="action-btn whatsapp"><span class="action-icon">💬</span>WhatsApp</a>
+        <a href="https://www.google.com/maps?q=${shop.latitude},${shop.longitude}" target="_blank" class="action-btn directions"><span class="action-icon">📍</span>Directions</a>
+      </div>
+
+      <div class="info-row"><span class="icon">📍</span><span>${shop.address || ''}${shop.cityArea ? ', ' + shop.cityArea : ''}</span></div>
+      <div class="info-row"><span class="icon">🕒</span><span>Open ${shop.openTime || '—'} to ${shop.closeTime || '—'}</span></div>
+      ${shop.description ? `<div class="info-row"><span class="icon">ℹ️</span><span>${shop.description}</span></div>` : ''}
+
+      ${galleryHtml ? `
+      <div class="section">
+        <div class="section-title">Gallery</div>
+        <div class="gallery-scroll">${galleryHtml}</div>
+      </div>` : ''}
+
+      <div class="section">
+        <div class="section-title">Products & Rates</div>
+        <div id="productsList"><div class="empty-note">Loading products...</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Customer Reviews</div>
+        <div id="reviewsList"><div class="empty-note">No reviews yet.</div></div>
+      </div>
+    `;
+
+    loadProducts(id);
+    loadReviews(id);
+  }
+
+  async function loadProducts(id){
+    const listEl = document.getElementById('productsList');
+    const snap = await getDocs(collection(db, "businesses", id, "products"));
+    if(snap.empty){
+      listEl.innerHTML = `<div class="empty-note">No products listed yet.</div>`;
+      return;
+    }
+    listEl.innerHTML = '';
+    snap.forEach(docSnap=>{
+      const p = docSnap.data();
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `
+        <div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-cat">${p.category || ''}</div>
+          <div class="stock-tag ${p.stock === 'out' ? 'out' : 'in'}">${p.stock === 'out' ? 'Out of stock' : 'In stock'}</div>
+        </div>
+        <div class="product-price">₹${p.price}${p.unit ? '<div style="font-size:10.5px; font-weight:500; color:#5B5B60;">per ' + p.unit + '</div>' : ''}</div>`;
+      listEl.appendChild(card);
+    });
+  }
+
+  async function loadReviews(id){
+    const listEl = document.getElementById('reviewsList');
+    const q = query(collection(db, "businesses", id, "reviews"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    if(snap.empty){
+      listEl.innerHTML = `<div class="empty-note">No reviews yet. Be the first to review after your visit!</div>`;
+      return;
+    }
+    listEl.innerHTML = '';
+    snap.forEach(docSnap=>{
+      const r = docSnap.data();
+      const card = document.createElement('div');
+      card.className = 'review-card';
+      card.innerHTML = `
+        <div class="review-top">
+          <span class="review-name">${r.customerName || 'Customer'}</span>
+          <span class="review-stars">${'★'.repeat(r.stars || 0)}${'☆'.repeat(5-(r.stars||0))}</span>
+        </div>
+        <div class="review-text">${r.comment || ''}</div>`;
+      listEl.appendChild(card);
+    });
+  }
+
+  // ---- Enquiry modal ----
+  const enquiryModal = document.getElementById('enquiryModal');
+  document.getElementById('openEnquiryBtn').addEventListener('click', ()=> enquiryModal.classList.add('open'));
+  document.getElementById('closeEnquiryModal').addEventListener('click', ()=> enquiryModal.classList.remove('open'));
+
+  document.getElementById('sendEnquiryBtn').addEventListener('click', async ()=>{
+    const name = document.getElementById('eq_name').value.trim();
+    const phone = document.getElementById('eq_phone').value.trim();
+    const message = document.getElementById('eq_message').value.trim();
+    const msgEl = document.getElementById('enquiryMsg');
+
+    if(!name || !phone || !message){
+      msgEl.textContent = "Please fill in all fields.";
+      msgEl.className = "msg error";
+      return;
+    }
+
+    const btn = document.getElementById('sendEnquiryBtn');
+    btn.disabled = true; btn.textContent = "Sending...";
+
+    try{
+      await addDoc(collection(db, "businesses", shopId, "enquiries"), {
+        customerName: name,
+        customerPhone: phone,
+        message: message,
+        status: "New",
+        createdAt: Timestamp.now()
+      });
+      msgEl.textContent = "Enquiry sent! The shopkeeper will contact you soon.";
+      msgEl.className = "msg success";
+      document.getElementById('eq_name').value = '';
+      document.getElementById('eq_phone').value = '';
+      document.getElementById('eq_message').value = '';
+      setTimeout(()=>{ enquiryModal.classList.remove('open'); msgEl.className = "msg"; }, 1800);
+    }catch(err){
+      console.error(err);
+      msgEl.textContent = "Couldn't send enquiry. Please try again or use WhatsApp/Call.";
+      msgEl.className = "msg error";
+    }
+    btn.disabled = false; btn.textContent = "Send Enquiry";
+  });
+</script>
+</body>
+</html>
