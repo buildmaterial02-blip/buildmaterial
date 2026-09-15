@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — BuildMaterial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --saffron:#FF9933; --saffron-dark:#E67E22; --ink:#1C1C1E; --ink-soft:#5B5B60;
+    --bg:#F7F6F3; --card:#FFFFFF; --line:#E7E4DE; --green:#2F8F5B; --red:#D64545; --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); padding-bottom:70px;}
+  h1,h2,.brand{font-family:'Poppins',sans-serif;}
+
+  .topbar{
+    position:sticky; top:0; z-index:50; background:var(--ink); color:#fff;
+    padding:14px 16px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{font-size:15px; font-weight:700; display:flex; align-items:center; gap:6px;}
+  .logout-btn{background:none; border:1px solid #444; color:#ddd; border-radius:20px; padding:6px 13px; font-size:12px; font-family:'Inter',sans-serif;}
+
+  .tab-content{display:none; padding:16px;}
+  .tab-content.active{display:block;}
+
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px;}
+  .stat-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px;}
+  .stat-card .num{font-size:24px; font-weight:800; font-family:'Poppins',sans-serif;}
+  .stat-card .label{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .stat-card.warn .num{color:#C77700;}
+  .stat-card.danger .num{color:var(--red);}
+
+  .section-title{font-size:15px; font-weight:700; margin:6px 0 12px;}
+
+  .filter-tabs{display:flex; gap:8px; margin-bottom:14px; overflow-x:auto;}
+  .filter-tab{
+    flex:0 0 auto; padding:7px 13px; border-radius:20px; font-size:12.5px; font-weight:600;
+    background:#fff; border:1.5px solid var(--line); color:var(--ink-soft);
+  }
+  .filter-tab.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+  .biz-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;}
+  .biz-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .biz-name{font-weight:700; font-size:15px;}
+  .biz-cat{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+  .biz-owner{font-size:12px; color:var(--ink-soft); margin-top:6px;}
+  .status-pill{font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:6px; white-space:nowrap;}
+  .status-pill.pending{background:#FFF4E3; color:#8A5A17;}
+  .status-pill.approved{background:#EAF7EF; color:var(--green);}
+  .status-pill.expired{background:#FDEDED; color:var(--red);}
+  .status-pill.expiring{background:#FFF4E3; color:#8A5A17;}
+
+  .biz-actions{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+  .btn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px; padding:8px 13px;
+    border-radius:9px; border:1.5px solid var(--line); background:#fff; color:var(--ink);
+  }
+  .btn-approve{background:var(--green); color:#fff; border-color:var(--green);}
+  .btn-reject{background:#fff; color:var(--red); border-color:var(--red);}
+  .btn-verify{background:#2563EB; color:#fff; border-color:#2563EB;}
+  .btn-extend{background:var(--saffron); color:#fff; border-color:var(--saffron);}
+
+  .empty-note{text-align:center; padding:30px 10px; color:var(--ink-soft); font-size:13px;}
+
+  .bottomnav{
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    display:flex; z-index:60; padding:6px 0 8px;
+  }
+  .bottomnav button{
+    flex:1; text-align:center; background:none; border:none; color:var(--ink-soft);
+    font-size:11px; font-weight:500; padding-top:4px; font-family:'Inter',sans-serif;
+  }
+  .bottomnav button.active{color:var(--saffron-dark); font-weight:700;}
+  .bottomnav .nav-icon{font-size:19px; display:block; margin-bottom:2px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">🛡️ Admin Panel</div>
+  <button class="logout-btn" id="logoutBtn">Logout</button>
+</div>
+
+<!-- OVERVIEW -->
+<div class="tab-content active" id="tab-overview">
+  <div class="section-title">Platform Overview</div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="num" id="statTotal">–</div><div class="label">Total Shops</div></div>
+    <div class="stat-card warn"><div class="num" id="statPending">–</div><div class="label">Pending Approval</div></div>
+    <div class="stat-card"><div class="num" id="statActive">–</div><div class="label">Active Subscriptions</div></div>
+    <div class="stat-card danger"><div class="num" id="statExpiring">–</div><div class="label">Expiring in 5 days</div></div>
+  </div>
+</div>
+
+<!-- BUSINESSES -->
+<div class="tab-content" id="tab-businesses">
+  <div class="section-title">All Shopkeepers</div>
+  <div class="filter-tabs">
+    <div class="filter-tab active" data-filter="all">All</div>
+    <div class="filter-tab" data-filter="pending">Pending</div>
+    <div class="filter-tab" data-filter="approved">Approved</div>
+    <div class="filter-tab" data-filter="expiring">Expiring Soon</div>
+    <div class="filter-tab" data-filter="expired">Expired</div>
+  </div>
+  <div id="businessesList"><div class="empty-note">Loading...</div></div>
+</div>
+
+<div class="bottomnav">
+  <button data-tab="overview" class="active"><span class="nav-icon">📊</span>Overview</button>
+  <button data-tab="businesses"><span class="nav-icon">🏪</span>Shopkeepers</button>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
+    authDomain: "build-material-6cddd.firebaseapp.com",
+    projectId: "build-material-6cddd",
+    storageBucket: "build-material-6cddd.firebasestorage.app",
+    messagingSenderId: "569135726307",
+    appId: "1:569135726307:web:0387f0344d7aa852134fd6"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let allBusinesses = [];
+  let activeFilter = "all";
+
+  // ---- Tab switching ----
+  document.querySelectorAll('.bottomnav button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.bottomnav button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.filter-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      activeFilter = tab.dataset.filter;
+      renderBusinesses();
+    });
+  });
+
+  // ---- Auth + admin check ----
+  onAuthStateChanged(auth, async (user)=>{
+    if(!user){
+      window.location.href = "admin-login.html";
+      return;
+    }
+    const adminDoc = await getDoc(doc(db, "admins", user.uid));
+    if(!adminDoc.exists()){
+      await signOut(auth);
+      window.location.href = "admin-login.html";
+      return;
+    }
+    await loadBusinesses();
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+    await signOut(auth);
+    window.location.href = "admin-login.html";
+  });
+
+  // ---- Load businesses ----
+  function getSubStatus(biz){
+    if(!biz.trialEndsAt) return "unknown";
+    const end = biz.trialEndsAt.toDate();
+    const daysLeft = Math.ceil((end - new Date()) / (1000*60*60*24));
+    if(daysLeft <= 0) return "expired";
+    if(daysLeft <= 5) return "expiring";
+    return "active";
+  }
+
+  async function loadBusinesses(){
+    const snap = await getDocs(collection(db, "businesses"));
+    allBusinesses = [];
+    snap.forEach(docSnap=>{
+      allBusinesses.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    renderStats();
+    renderBusinesses();
+  }
+
+  function renderStats(){
+    const total = allBusinesses.length;
+    const pending = allBusinesses.filter(b=>!b.approved).length;
+    const active = allBusinesses.filter(b=> getSubStatus(b) === "active" || getSubStatus(b) === "expiring").length;
+    const expiring = allBusinesses.filter(b=> getSubStatus(b) === "expiring").length;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statExpiring').textContent = expiring;
+  }
+
+  function renderBusinesses(){
+    const listEl = document.getElementById('businessesList');
+    let filtered = allBusinesses;
+    if(activeFilter === "pending") filtered = allBusinesses.filter(b=>!b.approved);
+    if(activeFilter === "approved") filtered = allBusinesses.filter(b=>b.approved);
+    if(activeFilter === "expiring") filtered = allBusinesses.filter(b=> getSubStatus(b) === "expiring");
+    if(activeFilter === "expired") filtered = allBusinesses.filter(b=> getSubStatus(b) === "expired");
+
+    if(filtered.length === 0){
+      listEl.innerHTML = `<div class="empty-note">No shops in this category.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = '';
+    filtered.forEach(biz=>{
+      const subStatus = getSubStatus(biz);
+      let pillHtml = '';
+      if(!biz.approved) pillHtml = `<span class="status-pill pending">Pending</span>`;
+      else if(subStatus === "expired") pillHtml = `<span class="status-pill expired">Expired</span>`;
+      else if(subStatus === "expiring") pillHtml = `<span class="status-pill expiring">Expiring Soon</span>`;
+      else pillHtml = `<span class="status-pill approved">Active</span>`;
+
+      const card = document.createElement('div');
+      card.className = 'biz-card';
+      card.innerHTML = `
+        <div class="biz-top">
+          <div>
+            <div class="biz-name">${biz.businessName || 'Unnamed'} ${biz.verified ? '✓' : ''}</div>
+            <div class="biz-cat">${biz.category || ''} · ${biz.cityArea || ''}, ${biz.district || ''}</div>
+            <div class="biz-owner">Owner: ${biz.ownerName || ''} · ${biz.ownerMobile || ''}</div>
+          </div>
+          ${pillHtml}
+        </div>
+        <div class="biz-actions">
+          ${!biz.approved ? `
+            <button class="btn btn-approve" data-action="approve" data-id="${biz.id}">Approve</button>
+            <button class="btn btn-reject" data-action="reject" data-id="${biz.id}">Reject</button>
+          ` : `
+            ${!biz.verified ? `<button class="btn btn-verify" data-action="verify" data-id="${biz.id}">Give Verified Badge</button>` : ''}
+            <button class="btn btn-extend" data-action="extend" data-id="${biz.id}">Extend 3 Months</button>
+            <button class="btn btn-reject" data-action="deactivate" data-id="${biz.id}">Deactivate</button>
+          `}
+        </div>`;
+      listEl.appendChild(card);
+    });
+
+    // Action buttons
+    listEl.querySelectorAll('button[data-action]').forEach(btn=>{
+      btn.addEventListener('click', ()=> handleAction(btn.dataset.action, btn.dataset.id));
+    });
+  }
+
+  async function handleAction(action, id){
+    const ref = doc(db, "businesses", id);
+    try{
+      if(action === "approve"){
+        await updateDoc(ref, { approved: true });
+      } else if(action === "reject"){
+        await updateDoc(ref, { approved: false, subscriptionActive: false });
+      } else if(action === "verify"){
+        await updateDoc(ref, { verified: true });
+      } else if(action === "deactivate"){
+        await updateDoc(ref, { subscriptionActive: false });
+      } else if(action === "extend"){
+        const bizSnap = await getDoc(ref);
+        const biz = bizSnap.data();
+        const base = (biz.trialEndsAt && biz.trialEndsAt.toDate() > new Date()) ? biz.trialEndsAt.toDate() : new Date();
+        base.setDate(base.getDate() + 90);
+        await updateDoc(ref, {
+          trialEndsAt: Timestamp.fromDate(base),
+          subscriptionActive: true,
+          subscriptionType: "paid"
+        });
+      }
+      await loadBusinesses();
+    }catch(err){
+      console.error(err);
+      alert("Action failed. Please try again.");
+    }
+  }
+</script>
+</body>
+</html>
