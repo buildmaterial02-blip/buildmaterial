@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shopkeeper Dashboard — BuildMaterial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --saffron:#FF9933; --saffron-dark:#E67E22; --ink:#1C1C1E; --ink-soft:#5B5B60;
+    --bg:#FFFDF9; --card:#FFFFFF; --line:#EFE6DA; --green:#2F8F5B; --red:#D64545; --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); padding-bottom:70px;}
+  h1,h2,h3,.brand{font-family:'Poppins',sans-serif;}
+
+  .topbar{
+    position:sticky; top:0; z-index:50; background:var(--card); border-bottom:1px solid var(--line);
+    padding:14px 16px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{font-size:16px; font-weight:700;}
+  .brand span{color:var(--saffron-dark); display:block; font-size:12px; font-weight:500; font-family:'Inter',sans-serif; color:var(--ink-soft);}
+  .logout-btn{background:none; border:1.5px solid var(--line); border-radius:20px; padding:7px 14px; font-size:12.5px; color:var(--ink-soft); font-family:'Inter',sans-serif;}
+
+  .tab-content{display:none; padding:16px;}
+  .tab-content.active{display:block;}
+
+  .banner{
+    padding:12px 14px; border-radius:12px; font-size:13px; margin-bottom:16px; font-weight:500;
+  }
+  .banner.pending{background:#FFF4E3; color:#8A5A17;}
+  .banner.approved{background:#EAF7EF; color:var(--green);}
+  .banner.expiring{background:#FDEDED; color:var(--red);}
+
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px;}
+  .stat-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px;}
+  .stat-card .num{font-size:22px; font-weight:800; font-family:'Poppins',sans-serif;}
+  .stat-card .label{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  .section-title{font-size:15px; font-weight:700; margin:18px 0 10px;}
+
+  .sub-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px;
+  }
+  .sub-card .plan-name{font-size:15px; font-weight:700;}
+  .sub-card .plan-meta{font-size:13px; color:var(--ink-soft); margin-top:4px;}
+  .sub-badge{display:inline-block; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; margin-top:8px;}
+  .sub-badge.active{background:#EAF7EF; color:var(--green);}
+  .sub-badge.expiring{background:#FFF4E3; color:#8A5A17;}
+  .sub-badge.expired{background:#FDEDED; color:var(--red);}
+
+  .btn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; padding:10px 16px;
+    border-radius:10px; border:1.5px solid var(--saffron); background:#fff; color:var(--saffron-dark);
+  }
+  .btn-solid{background:var(--saffron); color:#fff; border-color:var(--saffron);}
+  .btn-block{width:100%; padding:13px; border-radius:12px; font-size:14.5px;}
+  .btn-sm{padding:6px 12px; font-size:12px;}
+
+  .fab{
+    position:fixed; right:16px; bottom:80px; width:52px; height:52px; border-radius:50%;
+    background:var(--saffron); color:#fff; font-size:26px; border:none; box-shadow:0 4px 14px rgba(255,153,51,.4);
+    z-index:40;
+  }
+
+  .product-card, .enquiry-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:10px;
+  }
+  .product-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .product-name{font-weight:700; font-size:14.5px;}
+  .product-cat{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .product-price{font-weight:700; color:var(--saffron-dark); font-size:14px;}
+  .product-actions{display:flex; gap:8px; margin-top:10px;}
+  .stock-badge{font-size:11px; padding:2px 7px; border-radius:6px; font-weight:600;}
+  .stock-badge.in{background:#EAF7EF; color:var(--green);}
+  .stock-badge.out{background:#FDEDED; color:var(--red);}
+
+  .enquiry-top{display:flex; justify-content:space-between; align-items:center;}
+  .enquiry-customer{font-weight:700; font-size:14px;}
+  .enquiry-msg{font-size:13px; color:var(--ink-soft); margin-top:6px;}
+  .enquiry-time{font-size:11px; color:var(--ink-soft); margin-top:6px;}
+  .status-select{font-size:12px; padding:5px 8px; border-radius:8px; border:1.5px solid var(--line); background:#FBF8F3;}
+
+  .gallery-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .gallery-grid img{width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; border:1px solid var(--line);}
+  .gallery-add{
+    aspect-ratio:1; border:2px dashed var(--line); border-radius:10px; display:flex;
+    align-items:center; justify-content:center; font-size:24px; color:var(--ink-soft);
+  }
+
+  .field{margin-bottom:14px;}
+  label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px;}
+  input, select, textarea{
+    width:100%; padding:11px 13px; border-radius:10px; border:1.5px solid var(--line);
+    font-size:14px; font-family:'Inter',sans-serif; background:#FBF8F3;
+  }
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--saffron);}
+
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100;
+    align-items:flex-end;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-sheet{
+    background:#fff; width:100%; border-radius:20px 20px 0 0; padding:20px 16px 30px;
+    max-height:85vh; overflow-y:auto;
+  }
+  .modal-title{font-size:16px; font-weight:700; margin-bottom:14px;}
+  .modal-close{float:right; font-size:20px; color:var(--ink-soft); background:none; border:none;}
+
+  .empty-note{text-align:center; padding:30px 10px; color:var(--ink-soft); font-size:13px;}
+
+  .bottomnav{
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    display:flex; z-index:60; padding:6px 0 8px;
+  }
+  .bottomnav button{
+    flex:1; text-align:center; background:none; border:none; color:var(--ink-soft);
+    font-size:11px; font-weight:500; padding-top:4px; font-family:'Inter',sans-serif;
+  }
+  .bottomnav button.active{color:var(--saffron-dark); font-weight:700;}
+  .bottomnav .nav-icon{font-size:19px; display:block; margin-bottom:2px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Dashboard<span id="shopNameLabel">Loading...</span></div>
+  <button class="logout-btn" id="logoutBtn">Logout</button>
+</div>
+
+<!-- OVERVIEW TAB -->
+<div class="tab-content active" id="tab-overview">
+  <div id="statusBanner"></div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="num" id="statProducts">0</div><div class="label">Products Listed</div></div>
+    <div class="stat-card"><div class="num" id="statEnquiries">0</div><div class="label">Total Enquiries</div></div>
+    <div class="stat-card"><div class="num" id="statRating">–</div><div class="label">Shop Rating</div></div>
+    <div class="stat-card"><div class="num" id="statNew">0</div><div class="label">New Enquiries</div></div>
+  </div>
+
+  <div class="section-title">Subscription</div>
+  <div class="sub-card">
+    <div class="plan-name" id="subPlanName">Loading...</div>
+    <div class="plan-meta" id="subPlanMeta"></div>
+    <div id="subBadgeWrap"></div>
+  </div>
+</div>
+
+<!-- PRODUCTS TAB -->
+<div class="tab-content" id="tab-products">
+  <div class="section-title">Your Products & Rates</div>
+  <div id="productsList"><div class="empty-note">No products yet. Tap + to add your first product.</div></div>
+</div>
+
+<!-- GALLERY TAB -->
+<div class="tab-content" id="tab-gallery">
+  <div class="section-title">Shop Gallery</div>
+  <div class="gallery-grid" id="galleryGrid">
+    <div class="gallery-add" id="galleryAddBtn">+</div>
+  </div>
+  <input type="file" id="galleryFileInput" accept="image/*" style="display:none;">
+</div>
+
+<!-- ENQUIRIES TAB -->
+<div class="tab-content" id="tab-enquiries">
+  <div class="section-title">Customer Enquiries</div>
+  <div id="enquiriesList"><div class="empty-note">No enquiries yet.</div></div>
+</div>
+
+<!-- PROFILE TAB -->
+<div class="tab-content" id="tab-profile">
+  <div class="section-title">Shop Profile</div>
+  <div class="field"><label>Business Name</label><input type="text" id="pf_businessName"></div>
+  <div class="field"><label>Category</label>
+    <select id="pf_category">
+      <option>Cement</option><option>TMT / Steel</option><option>Sand & Aggregates</option>
+      <option>Bricks / AAC Blocks</option><option>Paint & Waterproofing</option><option>Plumbing</option>
+      <option>Electrical</option><option>Tiles</option><option>Hardware & Tools</option>
+      <option>Plywood / MDF</option><option>Interior Design</option><option>Contractor / Machinery Services</option>
+    </select>
+  </div>
+  <div class="field"><label>Shop Phone</label><input type="tel" id="pf_shopPhone"></div>
+  <div class="field"><label>WhatsApp Number</label><input type="tel" id="pf_shopWhatsapp"></div>
+  <div class="field"><label>Description</label><textarea id="pf_description" style="min-height:70px;"></textarea></div>
+  <div class="field"><label>Address</label><textarea id="pf_address" style="min-height:60px;"></textarea></div>
+  <button class="btn btn-solid btn-block" id="saveProfileBtn">Save Changes</button>
+</div>
+
+<button class="fab" id="fabBtn">+</button>
+
+<div class="bottomnav">
+  <button data-tab="overview" class="active"><span class="nav-icon">📊</span>Overview</button>
+  <button data-tab="products"><span class="nav-icon">📦</span>Products</button>
+  <button data-tab="gallery"><span class="nav-icon">🖼️</span>Gallery</button>
+  <button data-tab="enquiries"><span class="nav-icon">💬</span>Enquiries</button>
+  <button data-tab="profile"><span class="nav-icon">🏪</span>Profile</button>
+</div>
+
+<!-- ADD PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal-sheet">
+    <button class="modal-close" id="closeProductModal">×</button>
+    <div class="modal-title">Add Product</div>
+    <div class="field"><label>Product Name *</label><input type="text" id="np_name" placeholder="e.g. UltraTech Cement"></div>
+    <div class="field"><label>Category</label>
+      <select id="np_category">
+        <option>Cement</option><option>TMT / Steel</option><option>Sand & Aggregates</option>
+        <option>Bricks / AAC Blocks</option><option>Paint & Waterproofing</option><option>Plumbing</option>
+        <option>Electrical</option><option>Tiles</option><option>Hardware & Tools</option>
+        <option>Plywood / MDF</option><option>Interior Design</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Price / Rate (₹) *</label><input type="number" id="np_price" placeholder="e.g. 380"></div>
+    <div class="field"><label>Unit</label><input type="text" id="np_unit" placeholder="e.g. Bag, Kg, Sq.ft, Piece"></div>
+    <div class="field"><label>Stock Status</label>
+      <select id="np_stock"><option value="in">In Stock</option><option value="out">Out of Stock</option></select>
+    </div>
+    <div class="field"><label>Description (optional)</label><textarea id="np_desc" style="min-height:50px;"></textarea></div>
+    <button class="btn btn-solid btn-block" id="saveProductBtn">Add Product</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs,
+    query, orderBy, Timestamp, arrayUnion
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
+    authDomain: "build-material-6cddd.firebaseapp.com",
+    projectId: "build-material-6cddd",
+    storageBucket: "build-material-6cddd.firebasestorage.app",
+    messagingSenderId: "569135726307",
+    appId: "1:569135726307:web:0387f0344d7aa852134fd6"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const CLOUD_NAME = "kvho2vpu";
+  const UPLOAD_PRESET = "buildmaterial";
+
+  async function uploadToCloudinary(file){
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:'POST', body: formData });
+    const data = await res.json();
+    return data.secure_url;
+  }
+
+  let currentUid = null;
+  let currentBizData = null;
+
+  // ---- Tab switching ----
+  document.querySelectorAll('.bottomnav button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.bottomnav button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---- Auth check ----
+  onAuthStateChanged(auth, async (user)=>{
+    if(!user){
+      window.location.href = "shopkeeper-login.html";
+      return;
+    }
+    currentUid = user.uid;
+    await loadBusinessData();
+    await loadProducts();
+    await loadEnquiries();
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+    await signOut(auth);
+    window.location.href = "shopkeeper-login.html";
+  });
+
+  // ---- Load business data ----
+  async function loadBusinessData(){
+    const bizRef = doc(db, "businesses", currentUid);
+    const snap = await getDoc(bizRef);
+    if(!snap.exists()) return;
+    currentBizData = snap.data();
+
+    document.getElementById('shopNameLabel').textContent = currentBizData.businessName || '';
+
+    // Status banner
+    const banner = document.getElementById('statusBanner');
+    if(!currentBizData.approved){
+      banner.innerHTML = `<div class="banner pending">⏳ Your shop is pending verification. It will go live once approved (usually within 24-48 hrs).</div>`;
+    } else {
+      banner.innerHTML = `<div class="banner approved">✅ Your shop is live and visible to customers.</div>`;
+    }
+
+    // Subscription
+    const subPlanName = document.getElementById('subPlanName');
+    const subPlanMeta = document.getElementById('subPlanMeta');
+    const subBadgeWrap = document.getElementById('subBadgeWrap');
+    if(currentBizData.trialEndsAt){
+      const endDate = currentBizData.trialEndsAt.toDate();
+      const now = new Date();
+      const daysLeft = Math.ceil((endDate - now) / (1000*60*60*24));
+      subPlanName.textContent = currentBizData.subscriptionType === "free_trial" ? "Free Trial" : "₹500 / 3 Months Plan";
+      subPlanMeta.textContent = daysLeft > 0 ? `${daysLeft} day(s) remaining — expires ${endDate.toLocaleDateString('en-IN')}` : `Expired on ${endDate.toLocaleDateString('en-IN')}`;
+      let badgeClass = "active", badgeText = "Active";
+      if(daysLeft <= 0){ badgeClass = "expired"; badgeText = "Expired"; }
+      else if(daysLeft <= 5){ badgeClass = "expiring"; badgeText = `Expiring in ${daysLeft} day(s)`; }
+      subBadgeWrap.innerHTML = `<span class="sub-badge ${badgeClass}">${badgeText}</span>`;
+    }
+
+    document.getElementById('statRating').textContent = currentBizData.rating ? currentBizData.rating.toFixed(1) : 'New';
+
+    // Fill profile tab
+    document.getElementById('pf_businessName').value = currentBizData.businessName || '';
+    document.getElementById('pf_category').value = currentBizData.category || '';
+    document.getElementById('pf_shopPhone').value = currentBizData.shopPhone || '';
+    document.getElementById('pf_shopWhatsapp').value = currentBizData.shopWhatsapp || '';
+    document.getElementById('pf_description').value = currentBizData.description || '';
+    document.getElementById('pf_address').value = currentBizData.address || '';
+
+    // Gallery
+    renderGallery(currentBizData.gallery || []);
+  }
+
+  // ---- Save profile ----
+  document.getElementById('saveProfileBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('saveProfileBtn');
+    btn.disabled = true; btn.textContent = "Saving...";
+    try{
+      await updateDoc(doc(db, "businesses", currentUid), {
+        businessName: document.getElementById('pf_businessName').value.trim(),
+        category: document.getElementById('pf_category').value,
+        shopPhone: document.getElementById('pf_shopPhone').value.trim(),
+        shopWhatsapp: document.getElementById('pf_shopWhatsapp').value.trim(),
+        description: document.getElementById('pf_description').value.trim(),
+        address: document.getElementById('pf_address').value.trim()
+      });
+      btn.textContent = "Saved ✓";
+      setTimeout(()=>{ btn.textContent = "Save Changes"; btn.disabled = false; }, 1500);
+    }catch(err){
+      console.error(err);
+      btn.textContent = "Save Changes";
+      btn.disabled = false;
+      alert("Couldn't save changes. Please try again.");
+    }
+  });
+
+  // ---- Products ----
+  const productModal = document.getElementById('productModal');
+  document.getElementById('fabBtn').addEventListener('click', ()=> productModal.classList.add('open'));
+  document.getElementById('closeProductModal').addEventListener('click', ()=> productModal.classList.remove('open'));
+
+  document.getElementById('saveProductBtn').addEventListener('click', async ()=>{
+    const name = document.getElementById('np_name').value.trim();
+    const price = document.getElementById('np_price').value;
+    if(!name || !price){ alert("Please enter product name and price."); return; }
+
+    const btn = document.getElementById('saveProductBtn');
+    btn.disabled = true; btn.textContent = "Adding...";
+    try{
+      await addDoc(collection(db, "businesses", currentUid, "products"), {
+        name,
+        category: document.getElementById('np_category').value,
+        price: Number(price),
+        unit: document.getElementById('np_unit').value.trim(),
+        stock: document.getElementById('np_stock').value,
+        description: document.getElementById('np_desc').value.trim(),
+        createdAt: Timestamp.now()
+      });
+      productModal.classList.remove('open');
+      document.getElementById('np_name').value = '';
+      document.getElementById('np_price').value = '';
+      document.getElementById('np_unit').value = '';
+      document.getElementById('np_desc').value = '';
+      await loadProducts();
+    }catch(err){
+      console.error(err);
+      alert("Couldn't add product. Please try again.");
+    }
+    btn.disabled = false; btn.textContent = "Add Product";
+  });
+
+  async function loadProducts(){
+    const listEl = document.getElementById('productsList');
+    const q = query(collection(db, "businesses", currentUid, "products"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    document.getElementById('statProducts').textContent = snap.size;
+    if(snap.empty){
+      listEl.innerHTML = `<div class="empty-note">No products yet. Tap + to add your first product.</div>`;
+      return;
+    }
+    listEl.innerHTML = '';
+    snap.forEach(docSnap=>{
+      const p = docSnap.data();
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `
+        <div class="product-top">
+          <div>
+            <div class="product-name">${p.name}</div>
+            <div class="product-cat">${p.category || ''} ${p.unit ? '· per ' + p.unit : ''}</div>
+          </div>
+          <div class="product-price">₹${p.price}</div>
+        </div>
+        <div class="product-actions">
+          <span class="stock-badge ${p.stock === 'out' ? 'out' : 'in'}">${p.stock === 'out' ? 'Out of Stock' : 'In Stock'}</span>
+        </div>`;
+      listEl.appendChild(card);
+    });
+  }
+
+  // ---- Gallery ----
+  function renderGallery(urls){
+    const grid = document.getElementById('galleryGrid');
+    grid.innerHTML = '';
+    urls.forEach(url=>{
+      const img = document.createElement('img');
+      img.src = url;
+      grid.appendChild(img);
+    });
+    const addBtn = document.createElement('div');
+    addBtn.className = 'gallery-add';
+    addBtn.id = 'galleryAddBtn';
+    addBtn.textContent = '+';
+    addBtn.addEventListener('click', ()=> document.getElementById('galleryFileInput').click());
+    grid.appendChild(addBtn);
+  }
+
+  document.getElementById('galleryFileInput').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const url = await uploadToCloudinary(file);
+      await updateDoc(doc(db, "businesses", currentUid), { gallery: arrayUnion(url) });
+      await loadBusinessData();
+    }catch(err){
+      console.error(err);
+      alert("Couldn't upload photo. Please try again.");
+    }
+  });
+
+  // ---- Enquiries ----
+  async function loadEnquiries(){
+    const listEl = document.getElementById('enquiriesList');
+    const q = query(collection(db, "businesses", currentUid, "enquiries"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    document.getElementById('statEnquiries').textContent = snap.size;
+    let newCount = 0;
+    if(snap.empty){
+      listEl.innerHTML = `<div class="empty-note">No enquiries yet.</div>`;
+      document.getElementById('statNew').textContent = 0;
+      return;
+    }
+    listEl.innerHTML = '';
+    snap.forEach(docSnap=>{
+      const en = docSnap.data();
+      if(en.status === 'New' || !en.status) newCount++;
+      const card = document.createElement('div');
+      card.className = 'enquiry-card';
+      const time = en.createdAt ? en.createdAt.toDate().toLocaleDateString('en-IN') : '';
+      card.innerHTML = `
+        <div class="enquiry-top">
+          <span class="enquiry-customer">${en.customerName || 'Customer'}</span>
+          <select class="status-select" data-id="${docSnap.id}">
+            <option ${en.status==='New'?'selected':''}>New</option>
+            <option ${en.status==='Contacted'?'selected':''}>Contacted</option>
+            <option ${en.status==='Quoted'?'selected':''}>Quoted</option>
+            <option ${en.status==='Completed'?'selected':''}>Completed</option>
+          </select>
+        </div>
+        <div class="enquiry-msg">${en.message || ''}</div>
+        <div class="enquiry-time">${time} · ${en.customerPhone || ''}</div>`;
+      listEl.appendChild(card);
+    });
+    document.getElementById('statNew').textContent = newCount;
+
+    listEl.querySelectorAll('.status-select').forEach(sel=>{
+      sel.addEventListener('change', async ()=>{
+        await updateDoc(doc(db, "businesses", currentUid, "enquiries", sel.dataset.id), { status: sel.value });
+      });
+    });
+  }
+</script>
+</body>
+</html>
