@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — BuildMaterial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --saffron:#FF9933; --saffron-dark:#E67E22; --ink:#1C1C1E; --ink-soft:#5B5B60;
+    --bg:#FFFDF9; --line:#EFE6DA; --red:#D64545;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif; background:var(--ink); color:#fff;
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:24px;
+  }
+  .logo-row{text-align:center; margin-bottom:32px;}
+  .logo-row .icon{font-size:38px;}
+  .logo-row h1{font-family:'Poppins',sans-serif; font-size:20px; font-weight:800; margin-top:10px;}
+  .logo-row p{font-size:13px; color:#A9A9AD; margin-top:4px;}
+
+  .field{margin-bottom:16px;}
+  label{display:block; font-size:12.5px; font-weight:600; color:#C9C9CD; margin-bottom:5px;}
+  input{
+    width:100%; padding:13px 14px; border-radius:10px; border:1.5px solid #333; background:#2A2A2C;
+    color:#fff; font-size:15px; font-family:'Inter',sans-serif;
+  }
+  input:focus{outline:none; border-color:var(--saffron);}
+
+  .btn-solid{
+    width:100%; padding:14px; border-radius:12px; border:none; background:var(--saffron);
+    color:#fff; font-size:15px; font-weight:700; font-family:'Inter',sans-serif; margin-top:8px;
+  }
+  .btn-solid:disabled{opacity:.6;}
+
+  .msg{font-size:13px; padding:10px 12px; border-radius:8px; margin-bottom:14px; display:none;}
+  .msg.error{background:#3A2222; color:#FF8080; display:block;}
+  .msg.info{background:#3A331F; color:#FFCB6B; display:block;}
+</style>
+</head>
+<body>
+
+  <div class="logo-row">
+    <div class="icon">🛡️</div>
+    <h1>Admin Login</h1>
+    <p>BuildMaterial platform control panel</p>
+  </div>
+
+  <div id="formMsg" class="msg"></div>
+
+  <form id="loginForm">
+    <div class="field">
+      <label for="email">Admin Email</label>
+      <input type="email" id="email" required>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" required>
+    </div>
+    <button type="submit" class="btn-solid" id="loginBtn">Log In</button>
+  </form>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
+    authDomain: "build-material-6cddd.firebaseapp.com",
+    projectId: "build-material-6cddd",
+    storageBucket: "build-material-6cddd.firebasestorage.app",
+    messagingSenderId: "569135726307",
+    appId: "1:569135726307:web:0387f0344d7aa852134fd6"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const form = document.getElementById('loginForm');
+  const formMsg = document.getElementById('formMsg');
+  const loginBtn = document.getElementById('loginBtn');
+
+  function showMsg(text, type){
+    formMsg.textContent = text;
+    formMsg.className = `msg ${type}`;
+  }
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Checking...";
+    showMsg("Verifying admin access...", "info");
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    try{
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
+
+      // Check admins collection — only listed UIDs can access admin panel
+      const adminDoc = await getDoc(doc(db, "admins", uid));
+      if(!adminDoc.exists()){
+        await signOut(auth);
+        showMsg("This account does not have admin access.", "error");
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Log In";
+        return;
+      }
+
+      window.location.href = "admin-dashboard.html";
+
+    }catch(err){
+      console.error(err);
+      let message = "Login failed. Please try again.";
+      if(err.code === "auth/invalid-credential" || err.code === "auth/wrong-password") message = "Incorrect email or password.";
+      if(err.code === "auth/user-not-found") message = "No account found with this email.";
+      showMsg(message, "error");
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Log In";
+    }
+  });
+</script>
+</body>
+</html>
