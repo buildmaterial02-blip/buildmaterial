@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search — BuildMaterial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --saffron:#FF9933; --saffron-dark:#E67E22; --ink:#1C1C1E; --ink-soft:#5B5B60;
+    --bg:#FFFDF9; --card:#FFFFFF; --line:#EFE6DA; --green:#2F8F5B; --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); padding-bottom:70px;}
+  h1,.brand{font-family:'Poppins',sans-serif;}
+
+  .topbar{
+    position:sticky; top:0; z-index:50; background:var(--card); border-bottom:1px solid var(--line);
+    padding:12px 16px;
+  }
+  .topbar-row{display:flex; align-items:center; gap:10px;}
+  .back-link{font-size:20px; text-decoration:none; color:var(--ink);}
+  .search-row{flex:1; position:relative;}
+  .search-row input{
+    width:100%; padding:11px 14px 11px 38px; border-radius:10px; border:1.5px solid var(--line);
+    font-size:14.5px; background:#FBF8F3; font-family:'Inter',sans-serif;
+  }
+  .search-row input:focus{outline:none; border-color:var(--saffron);}
+  .search-icon{position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:.5; font-size:14px;}
+
+  .filter-scroll{
+    display:flex; gap:8px; overflow-x:auto; padding:12px 16px; scrollbar-width:none;
+  }
+  .filter-scroll::-webkit-scrollbar{display:none;}
+  .filter-chip{
+    flex:0 0 auto; padding:8px 14px; border-radius:20px; border:1.5px solid var(--line);
+    background:#fff; font-size:12.5px; color:var(--ink-soft); font-weight:500; white-space:nowrap;
+  }
+  .filter-chip.active{background:var(--saffron); border-color:var(--saffron); color:#fff; font-weight:700;}
+
+  .results-header{padding:4px 16px 8px; font-size:13px; color:var(--ink-soft);}
+
+  .shop-list{padding:0 16px;}
+  .shop-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px; margin-bottom:12px; display:flex; gap:12px;
+  }
+  .shop-thumb{
+    width:64px; height:64px; border-radius:10px; background:#F1EAE0; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden;
+  }
+  .shop-thumb img{width:100%; height:100%; object-fit:cover;}
+  .shop-info{flex:1; min-width:0;}
+  .shop-title-row{display:flex; align-items:center; gap:6px;}
+  .shop-name{font-size:15px; font-weight:700;}
+  .badge-verified{font-size:10px; background:#E7F5EC; color:var(--green); padding:2px 6px; border-radius:6px; font-weight:600;}
+  .shop-cat{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+  .shop-meta{display:flex; align-items:center; gap:10px; margin-top:6px; font-size:12px; color:var(--ink-soft);}
+  .stars{color:#F5A623; font-size:12px;}
+  .dist{color:var(--saffron-dark); font-weight:600;}
+
+  .empty-state{text-align:center; padding:40px 16px; color:var(--ink-soft); font-size:13.5px;}
+
+  .bottomnav{
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    display:flex; z-index:60; padding:6px 0 8px;
+  }
+  .bottomnav a{flex:1; text-align:center; text-decoration:none; color:var(--ink-soft); font-size:11px; font-weight:500; padding-top:4px;}
+  .bottomnav a.active{color:var(--saffron-dark); font-weight:700;}
+  .bottomnav .nav-icon{font-size:19px; display:block; margin-bottom:2px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-row">
+    <a href="index.html" class="back-link">←</a>
+    <div class="search-row">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search shop or product name...">
+    </div>
+  </div>
+  <div class="filter-scroll" id="filterScroll">
+    <div class="filter-chip active" data-cat="">All</div>
+    <div class="filter-chip" data-cat="Cement">Cement</div>
+    <div class="filter-chip" data-cat="TMT / Steel">TMT / Steel</div>
+    <div class="filter-chip" data-cat="Sand & Aggregates">Sand & Aggregates</div>
+    <div class="filter-chip" data-cat="Bricks / AAC Blocks">Bricks / AAC</div>
+    <div class="filter-chip" data-cat="Paint & Waterproofing">Paint</div>
+    <div class="filter-chip" data-cat="Plumbing">Plumbing</div>
+    <div class="filter-chip" data-cat="Electrical">Electrical</div>
+    <div class="filter-chip" data-cat="Tiles">Tiles</div>
+    <div class="filter-chip" data-cat="Hardware & Tools">Hardware</div>
+    <div class="filter-chip" data-cat="Plywood / MDF">Plywood / MDF</div>
+    <div class="filter-chip" data-cat="Interior Design">Interior Design</div>
+    <div class="filter-chip" data-cat="Contractor / Machinery Services">Contractor</div>
+  </div>
+</div>
+
+<div class="results-header" id="resultsHeader">Loading shops...</div>
+<div class="shop-list" id="shopList"></div>
+
+<div class="bottomnav">
+  <a href="index.html"><span class="nav-icon">🏠</span>Home</a>
+  <a href="search.html" class="active"><span class="nav-icon">🔍</span>Search</a>
+  <a href="enquiries.html"><span class="nav-icon">💬</span>Enquiries</a>
+  <a href="profile.html"><span class="nav-icon">👤</span>Profile</a>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
+    authDomain: "build-material-6cddd.firebaseapp.com",
+    projectId: "build-material-6cddd",
+    storageBucket: "build-material-6cddd.firebasestorage.app",
+    messagingSenderId: "569135726307",
+    appId: "1:569135726307:web:0387f0344d7aa852134fd6"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let allShops = [];
+  let activeCategory = "";
+
+  // Pre-select category from URL (?category=Tiles) coming from homepage category tap
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCategory = urlParams.get('category');
+  if(urlCategory){
+    activeCategory = urlCategory;
+  }
+
+  async function loadShops(){
+    document.getElementById('resultsHeader').textContent = "Loading shops...";
+    try{
+      const q = query(
+        collection(db, "businesses"),
+        where("approved", "==", true),
+        where("subscriptionActive", "==", true)
+      );
+      const snap = await getDocs(q);
+      allShops = [];
+      snap.forEach(docSnap=>{
+        allShops.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      // sync chip UI if category came from URL
+      if(activeCategory){
+        document.querySelectorAll('.filter-chip').forEach(chip=>{
+          chip.classList.toggle('active', chip.dataset.cat === activeCategory);
+        });
+      }
+      renderShops();
+    }catch(err){
+      console.error(err);
+      document.getElementById('resultsHeader').textContent = "Couldn't load shops.";
+    }
+  }
+
+  function renderShops(){
+    const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+    let filtered = allShops.filter(shop=>{
+      const matchesCategory = !activeCategory || shop.category === activeCategory;
+      const matchesKeyword = !keyword ||
+        (shop.businessName && shop.businessName.toLowerCase().includes(keyword)) ||
+        (shop.category && shop.category.toLowerCase().includes(keyword)) ||
+        (shop.cityArea && shop.cityArea.toLowerCase().includes(keyword));
+      return matchesCategory && matchesKeyword;
+    });
+
+    document.getElementById('resultsHeader').textContent = `${filtered.length} shop(s) found`;
+
+    const listEl = document.getElementById('shopList');
+    if(filtered.length === 0){
+      listEl.innerHTML = `<div class="empty-state">No shops match your search.<br>Try a different category or keyword.</div>`;
+      return;
+    }
+    listEl.innerHTML = '';
+    filtered.forEach(shop=>{
+      const card = document.createElement('div');
+      card.className = 'shop-card';
+      card.addEventListener('click', ()=>{ window.location.href = `shop.html?id=${shop.id}`; });
+      card.innerHTML = `
+        <div class="shop-thumb">${shop.photoUrl ? `<img src="${shop.photoUrl}">` : '🏪'}</div>
+        <div class="shop-info">
+          <div class="shop-title-row">
+            <span class="shop-name">${shop.businessName || 'Unnamed Shop'}</span>
+            ${shop.verified ? '<span class="badge-verified">✓ Verified</span>' : ''}
+          </div>
+          <div class="shop-cat">${shop.category || ''} ${shop.cityArea ? '· ' + shop.cityArea : ''}</div>
+          <div class="shop-meta">
+            <span class="stars">★ ${shop.rating ? shop.rating.toFixed(1) : 'New'}</span>
+          </div>
+        </div>`;
+      listEl.appendChild(card);
+    });
+  }
+
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      activeCategory = chip.dataset.cat;
+      renderShops();
+    });
+  });
+
+  document.getElementById('searchInput').addEventListener('input', renderShops);
+
+  loadShops();
+</script>
+</body>
+</html>
