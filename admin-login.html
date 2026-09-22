@@ -65,7 +65,6 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
@@ -77,7 +76,10 @@
   };
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
+
+  // Simple admin check: only these emails can access the admin panel.
+  // Add more emails here (comma-separated) as needed — e.g. for Sar.
+  const ADMIN_EMAILS = ["admin@buildmaterial.com"];
 
   const form = document.getElementById('loginForm');
   const formMsg = document.getElementById('formMsg');
@@ -99,11 +101,10 @@
 
     try{
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const uid = userCredential.user.uid;
+      const signedInEmail = (userCredential.user.email || "").toLowerCase();
 
-      // Check admins collection — only listed UIDs can access admin panel
-      const adminDoc = await getDoc(doc(db, "admins", uid));
-      if(!adminDoc.exists()){
+      // Only listed emails can access the admin panel
+      if(!ADMIN_EMAILS.map(e => e.toLowerCase()).includes(signedInEmail)){
         await signOut(auth);
         showMsg("This account does not have admin access.", "error");
         loginBtn.disabled = false;
@@ -126,3 +127,4 @@
 </script>
 </body>
 </html>
+    
