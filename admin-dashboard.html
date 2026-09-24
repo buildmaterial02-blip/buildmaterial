@@ -84,7 +84,7 @@
 </div>
 
 <!-- OVERVIEW -->
-<div class="tab-content active" id="tab-overview">
+<div class="tab-content" id="tab-overview">
   <div class="section-title">Platform Overview</div>
   <div class="stat-grid">
     <div class="stat-card"><div class="num" id="statTotal">–</div><div class="label">Total Shops</div></div>
@@ -95,7 +95,7 @@
 </div>
 
 <!-- BUSINESSES -->
-<div class="tab-content" id="tab-businesses">
+<div class="tab-content active" id="tab-businesses">
   <div class="section-title">All Shopkeepers</div>
   <div class="filter-tabs">
     <div class="filter-tab active" data-filter="all">All</div>
@@ -108,8 +108,8 @@
 </div>
 
 <div class="bottomnav">
-  <button data-tab="overview" class="active"><span class="nav-icon">📊</span>Overview</button>
-  <button data-tab="businesses"><span class="nav-icon">🏪</span>Shopkeepers</button>
+  <button data-tab="overview"><span class="nav-icon">📊</span>Overview</button>
+  <button data-tab="businesses" class="active"><span class="nav-icon">🏪</span>Shopkeepers</button>
 </div>
 
 <script type="module">
@@ -130,7 +130,7 @@
   const db = getFirestore(app);
 
   // Must match the list in admin-login.html
-  const ADMIN_EMAILS = ["admin@buildmaterial.com"];
+  const ADMIN_EMAILS = ["admin@buildmaterial.com", "sir@buildmaterial.com"];
 
   let allBusinesses = [];
   let activeFilter = "all";
@@ -288,4 +288,4 @@
 </script>
 </body>
   </html>
-
+  
