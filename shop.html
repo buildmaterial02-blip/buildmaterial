@@ -52,8 +52,14 @@
 
   .product-card{
     background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px; margin-bottom:9px;
-    display:flex; justify-content:space-between; align-items:center;
+    display:flex; align-items:center; gap:12px;
   }
+  .product-thumb{
+    width:48px; height:48px; border-radius:9px; background:#F1EAE0; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center; font-size:18px; overflow:hidden;
+  }
+  .product-thumb img{width:100%; height:100%; object-fit:cover;}
+  .product-body{flex:1; min-width:0; display:flex; justify-content:space-between; align-items:center; gap:8px;}
   .product-name{font-weight:700; font-size:14px;}
   .product-cat{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
   .product-price{font-weight:800; color:var(--saffron-dark); font-size:14.5px; white-space:nowrap;}
@@ -126,9 +132,25 @@
   </div>
 </div>
 
+<!-- REVIEW MODAL -->
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal-sheet">
+    <button class="modal-close" id="closeReviewModal">×</button>
+    <div class="modal-title">Write a Review</div>
+    <div id="reviewMsg" class="msg"></div>
+    <div class="field"><label>Your Name *</label><input type="text" id="rv_name" placeholder="Your name"></div>
+    <div class="field">
+      <label>Your Rating *</label>
+      <div id="starPicker" style="font-size:28px; letter-spacing:6px; color:#F5A623; cursor:pointer;">☆☆☆☆☆</div>
+    </div>
+    <div class="field"><label>Your Review *</label><textarea id="rv_comment" style="min-height:70px;" placeholder="How was your experience with this shop?"></textarea></div>
+    <button class="btn-solid" id="submitReviewBtn">Submit Review</button>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, doc, getDoc, collection, getDocs, addDoc, Timestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, Timestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
@@ -200,7 +222,10 @@
       </div>
 
       <div class="section">
-        <div class="section-title">Customer Reviews</div>
+        <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Customer Reviews</span>
+          <button id="openReviewBtn" style="background:none;border:1.5px solid var(--saffron);color:var(--saffron-dark);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;">+ Write a Review</button>
+        </div>
         <div id="reviewsList"><div class="empty-note">No reviews yet.</div></div>
       </div>
     `;
@@ -222,12 +247,15 @@
       const card = document.createElement('div');
       card.className = 'product-card';
       card.innerHTML = `
-        <div>
-          <div class="product-name">${p.name}</div>
-          <div class="product-cat">${p.category || ''}</div>
-          <div class="stock-tag ${p.stock === 'out' ? 'out' : 'in'}">${p.stock === 'out' ? 'Out of stock' : 'In stock'}</div>
-        </div>
-        <div class="product-price">₹${p.price}${p.unit ? '<div style="font-size:10.5px; font-weight:500; color:#5B5B60;">per ' + p.unit + '</div>' : ''}</div>`;
+        <div class="product-thumb">${p.photoUrl ? `<img src="${p.photoUrl}">` : '📦'}</div>
+        <div class="product-body">
+          <div>
+            <div class="product-name">${p.name}</div>
+            <div class="product-cat">${p.category || ''}</div>
+            <div class="stock-tag ${p.stock === 'out' ? 'out' : 'in'}">${p.stock === 'out' ? 'Out of stock' : 'In stock'}</div>
+          </div>
+          <div class="product-price">₹${p.price}${p.unit ? '<div style="font-size:10.5px; font-weight:500; color:#5B5B60;">per ' + p.unit + '</div>' : ''}</div>
+        </div>`;
       listEl.appendChild(card);
     });
   }
@@ -296,6 +324,81 @@
     }
     btn.disabled = false; btn.textContent = "Send Enquiry";
   });
+  // ---- Review modal ----
+  const reviewModal = document.getElementById('reviewModal');
+  let selectedStars = 0;
+  const starPicker = document.getElementById('starPicker');
+
+  function renderStars(){
+    starPicker.textContent = '★'.repeat(selectedStars) + '☆'.repeat(5 - selectedStars);
+  }
+  starPicker.addEventListener('click', (e)=>{
+    const rect = starPicker.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const starWidth = rect.width / 5;
+    selectedStars = Math.min(5, Math.max(1, Math.ceil(clickX / starWidth)));
+    renderStars();
+  });
+
+  document.body.addEventListener('click', (e)=>{
+    if(e.target && e.target.id === 'openReviewBtn'){
+      selectedStars = 0;
+      renderStars();
+      document.getElementById('rv_name').value = '';
+      document.getElementById('rv_comment').value = '';
+      document.getElementById('reviewMsg').className = 'msg';
+      reviewModal.classList.add('open');
+    }
+  });
+  document.getElementById('closeReviewModal').addEventListener('click', ()=> reviewModal.classList.remove('open'));
+
+  document.getElementById('submitReviewBtn').addEventListener('click', async ()=>{
+    const name = document.getElementById('rv_name').value.trim();
+    const comment = document.getElementById('rv_comment').value.trim();
+    const msgEl = document.getElementById('reviewMsg');
+
+    if(!name || !comment || selectedStars === 0){
+      msgEl.textContent = "Please enter your name, a rating, and your review.";
+      msgEl.className = "msg error";
+      return;
+    }
+
+    const btn = document.getElementById('submitReviewBtn');
+    btn.disabled = true; btn.textContent = "Submitting...";
+
+    try{
+      await addDoc(collection(db, "businesses", shopId, "reviews"), {
+        customerName: name,
+        stars: selectedStars,
+        comment: comment,
+        createdAt: Timestamp.now()
+      });
+
+      // Update shop's average rating
+      const shopRef = doc(db, "businesses", shopId);
+      const shopSnap = await getDoc(shopRef);
+      const shopData = shopSnap.data();
+      const oldCount = shopData.ratingCount || 0;
+      const oldRating = shopData.rating || 0;
+      const newCount = oldCount + 1;
+      const newRating = ((oldRating * oldCount) + selectedStars) / newCount;
+      await updateDoc(shopRef, { rating: newRating, ratingCount: newCount });
+
+      msgEl.textContent = "Thank you! Your review has been posted.";
+      msgEl.className = "msg success";
+      setTimeout(()=>{
+        reviewModal.classList.remove('open');
+        msgEl.className = "msg";
+        loadShop(shopId);
+      }, 1500);
+    }catch(err){
+      console.error(err);
+      msgEl.textContent = "Couldn't submit review. Please try again.";
+      msgEl.className = "msg error";
+    }
+    btn.disabled = false; btn.textContent = "Submit Review";
+  });
 </script>
 </body>
-</html>
+  </html>
+  
