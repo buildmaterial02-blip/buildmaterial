@@ -26,14 +26,15 @@
     background:linear-gradient(135deg,#FFF4E3,#FFFDF9); text-align:center;
   }
   .hero-card .icon{font-size:34px;}
-  .hero-card h2{font-size:17px; font-weight:700; margin-top:8px;}
+  .hero-card h2{font-size:17px; font-weight:700; margin-top:8px; font-family:'Poppins',sans-serif;}
   .hero-card p{font-size:13px; color:var(--ink-soft); margin-top:4px;}
 
   .list{margin:0 16px;}
   .list-item{
     background:var(--card); border:1px solid var(--line); border-radius:12px; padding:15px 16px;
     margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;
-    text-decoration:none; color:var(--ink);
+    text-decoration:none; color:var(--ink); width:100%; font-family:'Inter',sans-serif;
+    font-size:inherit; text-align:left; cursor:pointer;
   }
   .list-item .left{display:flex; align-items:center; gap:12px; font-size:14px; font-weight:600;}
   .list-item .arrow{color:var(--ink-soft);}
@@ -44,7 +45,7 @@
     position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
     display:flex; z-index:60; padding:6px 0 8px;
   }
-  .bottomnav a{flex:1; text-align:center; text-decoration:none; color:var(--ink-soft); font-size:11px; font-weight:500; padding-top:4px;}
+  .bottomnav a{flex:1; text-align:center; text-decoration:none; color:var(--ink-soft); font-size:11px; font-weight:500;}
   .bottomnav a.active{color:var(--saffron-dark); font-weight:700;}
   .bottomnav .nav-icon{font-size:19px; display:block; margin-bottom:2px;}
 </style>
@@ -55,8 +56,8 @@
 
 <div class="hero-card">
   <div class="icon">👤</div>
-  <h2>Welcome to BuildMaterial</h2>
-  <p>Browse shops and send enquiries — no account needed.</p>
+  <h2 id="heroTitle">Welcome to BuildMaterial</h2>
+  <p id="heroText">Browse shops and send enquiries — no account needed.</p>
 </div>
 
 <div class="list">
@@ -64,15 +65,32 @@
     <span class="left">💬 My Enquiries</span>
     <span class="arrow">›</span>
   </a>
-  <a href="shopkeeper-register.html" class="list-item">
-    <span class="left">🏪 Register Your Business</span>
-    <span class="arrow">›</span>
-  </a>
-  <a href="shopkeeper-login.html" class="list-item">
-    <span class="left">🔑 Shopkeeper Login</span>
-    <span class="arrow">›</span>
-  </a>
-  <a href="tel:9403168850" class="list-item">
+
+  <!-- Shown when NOT logged in as a shopkeeper -->
+  <div id="guestItems">
+    <a href="shopkeeper-register.html" class="list-item">
+      <span class="left">🏪 Register Your Business</span>
+      <span class="arrow">›</span>
+    </a>
+    <a href="shopkeeper-login.html" class="list-item">
+      <span class="left">🔑 Shopkeeper Login</span>
+      <span class="arrow">›</span>
+    </a>
+  </div>
+
+  <!-- Shown when a shopkeeper is logged in -->
+  <div id="shopItems" style="display:none;">
+    <a href="shopkeeper-dashboard.html" class="list-item">
+      <span class="left">🏪 My Shop Dashboard</span>
+      <span class="arrow">›</span>
+    </a>
+    <button type="button" class="list-item" id="logoutBtn">
+      <span class="left">🚪 Logout</span>
+      <span class="arrow">›</span>
+    </button>
+  </div>
+
+  <a href="tel:7447347373" class="list-item">
     <span class="left">📞 Contact Support</span>
     <span class="arrow">›</span>
   </a>
@@ -87,5 +105,50 @@
   <a href="profile.html" class="active"><span class="nav-icon">👤</span>Profile</a>
 </div>
 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
+    authDomain: "build-material-6cddd.firebaseapp.com",
+    projectId: "build-material-6cddd",
+    storageBucket: "build-material-6cddd.firebasestorage.app",
+    messagingSenderId: "569135726307",
+    appId: "1:569135726307:web:0387f0344d7aa852134fd6"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const guestItems = document.getElementById('guestItems');
+  const shopItems = document.getElementById('shopItems');
+  const heroTitle = document.getElementById('heroTitle');
+  const heroText = document.getElementById('heroText');
+
+  onAuthStateChanged(auth, (user)=>{
+    if(user){
+      guestItems.style.display = 'none';
+      shopItems.style.display = 'block';
+      heroTitle.textContent = 'Welcome back';
+      heroText.textContent = 'Manage your shop, products and enquiries from your dashboard.';
+    } else {
+      guestItems.style.display = 'block';
+      shopItems.style.display = 'none';
+      heroTitle.textContent = 'Welcome to BuildMaterial';
+      heroText.textContent = 'Browse shops and send enquiries — no account needed.';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+    try{
+      await signOut(auth);
+      window.location.reload();
+    }catch(err){
+      console.error(err);
+      alert("Couldn't log out. Please try again.");
+    }
+  });
+</script>
 </body>
-</html>
+  </html>
+  
