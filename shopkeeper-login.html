@@ -50,6 +50,8 @@
   .below-links a{color:var(--saffron-dark); font-weight:600; text-decoration:none;}
 
   .divider{text-align:center; margin:14px 0; color:var(--ink-soft); font-size:12px;}
+
+  .checking-note{text-align:center; padding:30px 0; color:var(--ink-soft); font-size:13.5px;}
 </style>
 </head>
 <body>
@@ -66,33 +68,39 @@
     <p>Manage your shop, products and enquiries</p>
   </div>
 
-  <div id="formMsg" class="msg"></div>
+  <!-- Shown briefly while we check if you're already logged in -->
+  <div id="checkingNote" class="checking-note">Checking your login...</div>
 
-  <form id="loginForm">
-    <div class="field">
-      <label for="email">Email</label>
-      <input type="email" id="email" required placeholder="you@example.com">
+  <!-- Shown only once we know you're NOT logged in -->
+  <div id="loginArea" style="display:none;">
+    <div id="formMsg" class="msg"></div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Your password">
+      </div>
+      <button type="submit" class="btn-solid" id="loginBtn">Log In</button>
+    </form>
+
+    <div class="divider">— OR —</div>
+
+    <div class="below-links">
+      New shop owner? <a href="shopkeeper-register.html">Register your business</a>
     </div>
-    <div class="field">
-      <label for="password">Password</label>
-      <input type="password" id="password" required placeholder="Your password">
+    <div class="below-links" style="margin-top:8px;">
+      <a href="shopkeeper-forgot-password.html">Forgot password?</a>
     </div>
-    <button type="submit" class="btn-solid" id="loginBtn">Log In</button>
-  </form>
-
-  <div class="divider">— OR —</div>
-
-  <div class="below-links">
-    New shop owner? <a href="shopkeeper-register.html">Register your business</a>
-  </div>
-  <div class="below-links" style="margin-top:8px;">
-    <a href="shopkeeper-forgot-password.html">Forgot password?</a>
   </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -106,6 +114,27 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  const checkingNote = document.getElementById('checkingNote');
+  const loginArea = document.getElementById('loginArea');
+
+  // ---- Auto-redirect if a shopkeeper session already exists ----
+  onAuthStateChanged(auth, async (user)=>{
+    if(user){
+      try{
+        const bizDoc = await getDoc(doc(db, "businesses", user.uid));
+        if(bizDoc.exists()){
+          window.location.href = "shopkeeper-dashboard.html";
+          return;
+        }
+      }catch(err){
+        console.error(err);
+      }
+    }
+    // Not logged in (or not a shopkeeper account) — show the login form
+    checkingNote.style.display = 'none';
+    loginArea.style.display = 'block';
+  });
 
   const form = document.getElementById('loginForm');
   const formMsg = document.getElementById('formMsg');
