@@ -165,6 +165,7 @@
 
   const urlParams = new URLSearchParams(window.location.search);
   const shopId = urlParams.get('id');
+  let shopName = 'Shop';
 
   if(!shopId){
     document.getElementById('shopContent').innerHTML = `<div style="padding:40px 16px; text-align:center;">Shop not found.</div>`;
@@ -179,6 +180,7 @@
       return;
     }
     const shop = snap.data();
+    shopName = shop.businessName || 'Shop';
 
     const galleryHtml = (shop.gallery && shop.gallery.length > 0)
       ? shop.gallery.map(url => `<img src="${url}">`).join('')
@@ -283,6 +285,24 @@
     });
   }
 
+  // ---- Save enquiry to this device so "My Enquiries" can show it automatically ----
+  function saveEnquiryLocally(enquiryId, message){
+    try{
+      const raw = localStorage.getItem('bm_myEnquiries');
+      const list = raw ? JSON.parse(raw) : [];
+      list.push({
+        shopId: shopId,
+        enquiryId: enquiryId,
+        shopName: shopName,
+        message: message,
+        time: new Date().toISOString()
+      });
+      localStorage.setItem('bm_myEnquiries', JSON.stringify(list));
+    }catch(e){
+      console.error("Couldn't save enquiry locally", e);
+    }
+  }
+
   // ---- Enquiry modal ----
   const enquiryModal = document.getElementById('enquiryModal');
   document.getElementById('openEnquiryBtn').addEventListener('click', ()=> enquiryModal.classList.add('open'));
@@ -304,13 +324,16 @@
     btn.disabled = true; btn.textContent = "Sending...";
 
     try{
-      await addDoc(collection(db, "businesses", shopId, "enquiries"), {
+      const docRef = await addDoc(collection(db, "businesses", shopId, "enquiries"), {
         customerName: name,
         customerPhone: phone,
         message: message,
         status: "New",
         createdAt: Timestamp.now()
       });
+
+      saveEnquiryLocally(docRef.id, message);
+
       msgEl.textContent = "Enquiry sent! The shopkeeper will contact you soon.";
       msgEl.className = "msg success";
       document.getElementById('eq_name').value = '';
@@ -400,5 +423,5 @@
   });
 </script>
 </body>
-  </html>
+                                                     </html>
   
