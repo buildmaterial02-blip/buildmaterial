@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cost Calculator — BuildMaterial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A1D1F;
+    --ink-soft:#6B6660;
+    --stone:#F6F3EE;
+    --card:#FFFFFF;
+    --line:#E4DED3;
+    --rust:#C1502E;
+    --rust-dark:#9E3F23;
+    --teal:#2F6F6B;
+    --gold:#C9A227;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--stone);
+    color:var(--ink);
+    padding-bottom:80px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.brand{font-family:'Space Grotesk',sans-serif;}
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:var(--stone);
+    border-bottom:1px solid var(--line);
+    padding:14px 16px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .back-link{font-size:20px; text-decoration:none; color:var(--ink);}
+  .brand{font-size:17px; font-weight:700;}
+
+  .hero{
+    padding:22px 16px 20px;
+    background:var(--ink);
+    background-image:
+      linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+    background-size:26px 26px;
+  }
+  .hero h1{font-size:20px; color:#fff; font-weight:700; max-width:280px; line-height:1.3;}
+  .hero p{font-size:13px; color:#B9B4AA; margin-top:8px; max-width:280px; line-height:1.5;}
+
+  .section{padding:20px 16px 4px;}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px;
+  }
+
+  .mode-toggle{
+    display:flex; background:#EFE9DD; border-radius:999px; padding:4px; margin-bottom:18px;
+  }
+  .mode-toggle button{
+    flex:1; border:none; background:transparent; padding:10px; border-radius:999px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13px; color:var(--ink-soft);
+  }
+  .mode-toggle button.active{background:var(--ink); color:#fff;}
+
+  .field{margin-bottom:16px;}
+  label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;}
+  input, select{
+    width:100%; padding:13px 14px; border-radius:8px; border:1.5px solid var(--line);
+    font-size:15px; font-family:'Inter',sans-serif; background:#FBF8F3; color:var(--ink);
+  }
+  input:focus, select:focus{outline:none; border-color:var(--ink);}
+
+  .quality-row{display:flex; gap:8px;}
+  .quality-opt{
+    flex:1; text-align:center; padding:12px 6px; border-radius:8px; border:1.5px solid var(--line);
+    cursor:pointer; background:#fff;
+  }
+  .quality-opt.active{border-color:var(--rust); background:#FBEFE9;}
+  .quality-opt .q-name{font-size:12.5px; font-weight:700;}
+  .quality-opt .q-rate{font-size:10.5px; color:var(--ink-soft); margin-top:2px;}
+
+  .btn-solid{
+    width:100%; padding:14px; border-radius:999px; border:none; background:var(--rust);
+    color:#fff; font-size:15px; font-weight:700; font-family:'Inter',sans-serif; margin-top:4px;
+  }
+
+  .result-card{
+    margin-top:18px; background:var(--ink); border-radius:var(--radius); padding:20px;
+    color:#fff; display:none;
+  }
+  .result-card.show{display:block;}
+  .result-label{font-size:12px; color:#B9B4AA; margin-bottom:4px;}
+  .result-value{font-size:26px; font-weight:700; font-family:'Space Grotesk',sans-serif;}
+  .result-note{font-size:11.5px; color:#B9B4AA; margin-top:8px; line-height:1.5;}
+
+  .breakdown{margin-top:18px;}
+  .breakdown-row{margin-bottom:12px;}
+  .breakdown-top{display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;}
+  .breakdown-bar{height:6px; border-radius:4px; background:rgba(255,255,255,.12); overflow:hidden;}
+  .breakdown-fill{height:100%; border-radius:4px; background:var(--rust);}
+
+  .sub-divider{height:1px; background:rgba(255,255,255,.12); margin:18px 0;}
+  .material-label{font-size:11.5px; font-weight:700; color:#B9B4AA; text-transform:uppercase; letter-spacing:.03em;}
+  .material-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;}
+  .material-item{background:rgba(255,255,255,.06); border-radius:8px; padding:12px; text-align:center;}
+  .m-icon{font-size:17px;}
+  .m-value{font-size:17px; font-weight:700; font-family:'Space Grotesk',sans-serif; margin-top:4px;}
+  .m-name{font-size:10.5px; color:#B9B4AA; margin-top:2px;}
+  .timeline-row{display:flex; align-items:center; gap:12px;}
+  .t-icon{font-size:22px;}
+  .t-value{font-size:16px; font-weight:700; font-family:'Space Grotesk',sans-serif;}
+
+  .detail-toggle-link{
+    display:block; text-align:center; margin-top:16px; font-size:12.5px; font-weight:600;
+    color:#fff; text-decoration:underline; background:none; border:none; width:100%;
+  }
+  .detail-section{display:none; margin-top:16px;}
+  .detail-section.show{display:block;}
+  .detail-row{display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.1); font-size:12px;}
+  .detail-row:last-child{border-bottom:none;}
+  .detail-name{font-weight:600;}
+  .detail-qty{color:#B9B4AA; font-size:10.5px; margin-top:1px;}
+  .detail-sub{font-weight:700; font-family:'Space Grotesk',sans-serif; white-space:nowrap;}
+  .detail-total-row{display:flex; justify-content:space-between; padding-top:12px; margin-top:4px; border-top:1.5px solid rgba(255,255,255,.25); font-weight:700; font-size:14px;}
+
+  .addon-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.1); font-size:12.5px;}
+  .addon-row:last-child{border-bottom:none;}
+  .addon-row input{width:auto; accent-color:var(--rust);}
+  .addon-name{flex:1;}
+  .addon-price{font-size:11.5px; color:#B9B4AA;}
+
+  .card-section-title{font-size:11.5px; font-weight:700; color:#B9B4AA; text-transform:uppercase; letter-spacing:.03em; margin:18px 0 6px;}
+
+  .disclaimer{font-size:11.5px; color:var(--ink-soft); padding:16px 2px 0; line-height:1.5;}
+
+  .cta-link{
+    display:block; text-align:center; margin-top:20px; padding:13px; border-radius:999px;
+    border:1.5px solid var(--ink); text-decoration:none; color:var(--ink); font-weight:600; font-size:13.5px;
+  }
+
+  .bottomnav{
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    display:flex; z-index:60; padding:6px 0 8px;
+  }
+  .bottomnav a{flex:1; text-align:center; text-decoration:none; color:var(--ink-soft); font-size:10.5px; font-weight:500; padding-top:4px;}
+  .bottomnav a.active{color:var(--rust-dark); font-weight:700;}
+  .bottomnav .nav-icon{font-size:18px; display:block; margin-bottom:2px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="back-link">←</a>
+  <div class="brand">Cost Calculator</div>
+</div>
+
+<div class="hero">
+  <h1>Estimate your construction cost</h1>
+  <p>Enter your budget or built-up area to get a quick estimate based on current average market rates.</p>
+</div>
+
+<div class="section">
+  <div class="card">
+    <div class="mode-toggle">
+      <button type="button" id="modeBudgetBtn" class="active">I know my Budget</button>
+      <button type="button" id="modeAreaBtn">I know my Area</button>
+    </div>
+
+    <div class="field" id="budgetField">
+      <label for="budgetInput">Your Budget (₹)</label>
+      <input type="number" id="budgetInput" placeholder="e.g. 2500000">
+    </div>
+
+    <div class="field" id="areaField" style="display:none;">
+      <label for="areaInput">Built-up Area (sq ft)</label>
+      <input type="number" id="areaInput" placeholder="e.g. 1500">
+    </div>
+
+    <div class="field">
+      <label>Construction Quality</label>
+      <div class="quality-row" id="qualityRow">
+        <div class="quality-opt active" data-rate="1400" data-tier="0">
+          <div class="q-name">Basic</div>
+          <div class="q-rate">~₹1,400/sq ft</div>
+        </div>
+        <div class="quality-opt" data-rate="1800" data-tier="1">
+          <div class="q-name">Standard</div>
+          <div class="q-rate">~₹1,800/sq ft</div>
+        </div>
+        <div class="quality-opt" data-rate="2400" data-tier="2">
+          <div class="q-name">Premium</div>
+          <div class="q-rate">~₹2,400/sq ft</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-solid" id="calcBtn">Calculate Estimate</button>
+
+    <div class="result-card" id="resultCard">
+      <div class="result-label" id="resultLabel">Estimated area you can build</div>
+      <div class="result-value" id="resultValue">—</div>
+      <div class="result-note" id="resultNote"></div>
+
+      <div class="breakdown">
+        <div class="breakdown-row">
+          <div class="breakdown-top"><span>Structure (cement, steel, bricks, sand)</span><span>55%</span></div>
+          <div class="breakdown-bar"><div class="breakdown-fill" style="width:55%;"></div></div>
+        </div>
+        <div class="breakdown-row">
+          <div class="breakdown-top"><span>Finishing (tiles, paint, doors & windows)</span><span>30%</span></div>
+          <div class="breakdown-bar"><div class="breakdown-fill" style="width:30%;"></div></div>
+        </div>
+        <div class="breakdown-row">
+          <div class="breakdown-top"><span>Plumbing & Electrical</span><span>10%</span></div>
+          <div class="breakdown-bar"><div class="breakdown-fill" style="width:10%;"></div></div>
+        </div>
+        <div class="breakdown-row">
+          <div class="breakdown-top"><span>Labour & Other</span><span>5%</span></div>
+          <div class="breakdown-bar"><div class="breakdown-fill" style="width:5%;"></div></div>
+        </div>
+      </div>
+
+      <div class="sub-divider"></div>
+
+      <div class="material-label">Estimated Material Required</div>
+      <div class="material-grid">
+        <div class="material-item">
+          <div class="m-icon">🧱</div>
+          <div class="m-value" id="matCement">—</div>
+          <div class="m-name">Cement bags</div>
+        </div>
+        <div class="material-item">
+          <div class="m-icon">🔩</div>
+          <div class="m-value" id="matSteel">—</div>
+          <div class="m-name">Steel (tons)</div>
+        </div>
+        <div class="material-item">
+          <div class="m-icon">🧊</div>
+          <div class="m-value" id="matBricks">—</div>
+          <div class="m-name">Bricks</div>
+        </div>
+        <div class="material-item">
+          <div class="m-icon">⛏️</div>
+          <div class="m-value" id="matSand">—</div>
+          <div class="m-name">Sand (cu ft)</div>
+        </div>
+      </div>
+
+      <div class="sub-divider"></div>
+
+      <div class="timeline-row">
+        <div class="t-icon">🗓️</div>
+        <div>
+          <div class="material-label" style="margin-bottom:2px;">Estimated Timeline</div>
+          <div class="t-value" id="timelineValue">—</div>
+        </div>
+      </div>
+
+      <button type="button" class="detail-toggle-link" id="detailToggleBtn">📋 View Detailed Material & Cost List</button>
+
+      <div class="detail-section" id="detailSection">
+        <div class="card-section-title">Core Material List (highest cost first)</div>
+        <div id="detailList"></div>
+        <div class="detail-total-row"><span>Core Material Total</span><span id="detailTotal">—</span></div>
+
+        <div class="card-section-title">Optional Add-ons</div>
+        <div id="addonList"></div>
+        <div class="detail-total-row"><span>Grand Total (Core + Add-ons)</span><span id="grandTotal">—</span></div>
+      </div>
+    </div>
+
+    <a href="index.html" class="cta-link">Browse Nearby Shops for Quotes →</a>
+  </div>
+
+  <p class="disclaimer">* All rates, material quantities, the detailed material list, add-on prices and timeline shown are approximate — based on common construction thumb-rules and average 2026 Maharashtra market rates (cement, steel and tile rates cross-checked against current market data). Actual requirements and prices depend on design, brand choice, location and site conditions — contact shops on BuildMaterial for exact quotes.</p>
+</div>
+
+<div class="bottomnav">
+  <a href="index.html"><span class="nav-icon">🏠</span>Home</a>
+  <a href="search.html"><span class="nav-icon">🔍</span>Search</a>
+  <a href="calculator.html" class="active"><span class="nav-icon">🧮</span>Calculator</a>
+  <a href="profile.html"><span class="nav-icon">👤</span>Profile</a>
+</div>
+
+<script>
+  let mode = 'budget';
+  let selectedRate = 1400;
+
+  const modeBudgetBtn = document.getElementById('modeBudgetBtn');
+  const modeAreaBtn = document.getElementById('modeAreaBtn');
+  const budgetField = document.getElementById('budgetField');
+  const areaField = document.getElementById('areaField');
+  const qualityRow = document.getElementById('qualityRow');
+  const resultCard = document.getElementById('resultCard');
+  const resultLabel = document.getElementById('resultLabel');
+  const resultValue = document.getElementById('resultValue');
+  const resultNote = document.getElementById('resultNote');
+
+  modeBudgetBtn.addEventListener('click', ()=>{
+    mode = 'budget';
+    modeBudgetBtn.classList.add('active');
+    modeAreaBtn.classList.remove('active');
+    budgetField.style.display = 'block';
+    areaField.style.display = 'none';
+    resultCard.classList.remove('show');
+  });
+
+  modeAreaBtn.addEventListener('click', ()=>{
+    mode = 'area';
+    modeAreaBtn.classList.add('active');
+    modeBudgetBtn.classList.remove('active');
+    areaField.style.display = 'block';
+    budgetField.style.display = 'none';
+    resultCard.classList.remove('show');
+  });
+
+  let selectedTier = 0;
+
+  qualityRow.querySelectorAll('.quality-opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      qualityRow.querySelectorAll('.quality-opt').forEach(o=>o.classList.remove('active'));
+      opt.classList.add('active');
+      selectedRate = parseInt(opt.dataset.rate, 10);
+      selectedTier = parseInt(opt.dataset.tier, 10);
+    });
+  });
+
+  function formatINR(num){
+    return '₹' + Math.round(num).toLocaleString('en-IN');
+  }
+
+  // ---- Material quantity thumb-rules (per sq ft of built-up area) ----
+  const CEMENT_BAGS_PER_SQFT = 0.4;
+  const STEEL_KG_PER_SQFT = 4;
+  const BRICKS_PER_SQFT = 8;
+  const SAND_CUFT_PER_SQFT = 1.25;
+  const MONTHS_PER_SQFT_DIVISOR = 180; // area / 180, minimum 2 months
+
+  function updateMaterialAndTimeline(area){
+    document.getElementById('matCement').textContent = Math.round(area * CEMENT_BAGS_PER_SQFT).toLocaleString('en-IN');
+    document.getElementById('matSteel').textContent = ((area * STEEL_KG_PER_SQFT) / 1000).toFixed(1);
+    document.getElementById('matBricks').textContent = Math.round(area * BRICKS_PER_SQFT).toLocaleString('en-IN');
+    document.getElementById('matSand').textContent = Math.round(area * SAND_CUFT_PER_SQFT).toLocaleString('en-IN');
+
+    const months = Math.max(2, Math.round(area / MONTHS_PER_SQFT_DIVISOR));
+    document.getElementById('timelineValue').textContent = `~${months} month${months > 1 ? 's' : ''} (approx.)`;
+  }
+
+  // ---- Core material list: 22 essential construction items (no decor) ----
+  // priceByTier = [Basic, Standard, Premium]. qty is a function of built-up area (sq ft).
+  const CORE_MATERIALS = [
+    { name: "Cement", unit: "bags", qty: a => 0.4*a, priceByTier: [375, 400, 430] },
+    { name: "TMT Steel", unit: "kg", qty: a => 4*a, priceByTier: [60, 64, 70] },
+    { name: "Sand", unit: "cu ft", qty: a => 1.25*a, priceByTier: [18, 20, 22] },
+    { name: "Bricks / Blocks", unit: "nos", qty: a => 8*a, priceByTier: [8, 10, 45] },
+    { name: "Vitrified Tiles", unit: "sq ft", qty: a => a, priceByTier: [45, 72, 150] },
+    { name: "Bathroom Sanitaryware", unit: "set", qty: a => Math.max(1, Math.round(a/500)), priceByTier: [15000, 35000, 80000] },
+    { name: "Plumbing Pipes & Fittings", unit: "sq ft (lumpsum)", qty: a => a, priceByTier: [20, 30, 45] },
+    { name: "Electrical Wiring & Switches", unit: "sq ft (lumpsum)", qty: a => a, priceByTier: [45, 65, 100] },
+    { name: "MCB / Distribution Panel", unit: "set", qty: a => 1, priceByTier: [3500, 6000, 12000] },
+    { name: "Interior Paint", unit: "litres", qty: a => Math.round(a/120), priceByTier: [250, 350, 550] },
+    { name: "Exterior Paint", unit: "litres", qty: a => Math.round(a/150), priceByTier: [300, 420, 650] },
+    { name: "Wall Putty", unit: "bags", qty: a => Math.round(a/80), priceByTier: [350, 380, 420] },
+    { name: "Doors", unit: "nos", qty: a => Math.max(2, Math.round(a/250)), priceByTier: [4500, 9000, 22000] },
+    { name: "Windows", unit: "nos", qty: a => Math.max(3, Math.round(a/180)), priceByTier: [3500, 7000, 16000] },
+    { name: "Waterproofing", unit: "sq ft", qty: a => Math.round(a*0.4), priceByTier: [40, 60, 90] },
+    { name: "Overhead Water Tank", unit: "set", qty: a => 1, priceByTier: [6000, 9000, 15000] },
+    { name: "Water Pump", unit: "set", qty: a => 1, priceByTier: [4500, 7000, 12000] },
+    { name: "False Ceiling", unit: "sq ft", qty: a => Math.round(a*0.3), priceByTier: [55, 75, 120] },
+    { name: "Modular Kitchen", unit: "set", qty: a => 1, priceByTier: [80000, 180000, 400000] },
+    { name: "Geyser", unit: "nos", qty: a => Math.max(1, Math.round(a/500)), priceByTier: [6000, 9000, 16000] },
+    { name: "Exhaust Fans", unit: "nos", qty: a => Math.max(1, Math.round(a/500)) + 1, priceByTier: [900, 1400, 2500] },
+    { name: "Main Door Hardware & Locks", unit: "set", qty: a => 1, priceByTier: [6000, 14000, 35000] }
+  ];
+
+  // ---- Optional add-ons (not part of core construction, customer opts in) ----
+  const ADDONS = [
+    { key: "cctv", name: "CCTV Security System", priceByTier: [15000, 25000, 45000] },
+    { key: "inverter", name: "Inverter + Battery Backup", priceByTier: [12000, 20000, 35000] },
+    { key: "purifier", name: "Water Purifier (RO)", priceByTier: [8000, 15000, 25000] },
+    { key: "solar", name: "Rooftop Solar System", priceByTier: [60000, 120000, 250000] }
+  ];
+
+  let currentArea = 0;
+  let currentTier = 0;
+
+  function renderDetailList(area, tier){
+    const items = CORE_MATERIALS.map(m=>{
+      const q = m.qty(area);
+      const price = m.priceByTier[tier];
+      const sub = q * price;
+      return { name: m.name, unit: m.unit, qty: q, price, sub };
+    }).sort((a,b)=> b.sub - a.sub);
+
+    const listEl = document.getElementById('detailList');
+    listEl.innerHTML = '';
+    let total = 0;
+    items.forEach(it=>{
+      total += it.sub;
+      const row = document.createElement('div');
+      row.className = 'detail-row';
+      row.innerHTML = `
+        <div>
+          <div class="detail-name">${it.name}</div>
+          <div class="detail-qty">${Math.round(it.qty).toLocaleString('en-IN')} ${it.unit} × ${formatINR(it.price)}</div>
+        </div>
+        <div class="detail-sub">${formatINR(it.sub)}</div>`;
+      listEl.appendChild(row);
+    });
+    document.getElementById('detailTotal').textContent = formatINR(total);
+    return total;
+  }
+
+  function renderAddons(tier, coreTotal){
+    const addonListEl = document.getElementById('addonList');
+    addonListEl.innerHTML = '';
+    ADDONS.forEach(ad=>{
+      const price = ad.priceByTier[tier];
+      const row = document.createElement('div');
+      row.className = 'addon-row';
+      row.innerHTML = `
+        <input type="checkbox" class="addon-check" data-price="${price}">
+        <span class="addon-name">${ad.name}</span>
+        <span class="addon-price">${formatINR(price)}</span>`;
+      addonListEl.appendChild(row);
+    });
+    updateGrandTotal(coreTotal);
+    addonListEl.querySelectorAll('.addon-check').forEach(cb=>{
+      cb.addEventListener('change', ()=> updateGrandTotal(coreTotal));
+    });
+  }
+
+  function updateGrandTotal(coreTotal){
+    let addonsTotal = 0;
+    document.querySelectorAll('.addon-check:checked').forEach(cb=>{
+      addonsTotal += parseFloat(cb.dataset.price);
+    });
+    document.getElementById('grandTotal').textContent = formatINR(coreTotal + addonsTotal);
+  }
+
+  document.getElementById('detailToggleBtn').addEventListener('click', ()=>{
+    const sec = document.getElementById('detailSection');
+    sec.classList.toggle('show');
+    if(sec.classList.contains('show')){
+      const coreTotal = renderDetailList(currentArea, currentTier);
+      renderAddons(currentTier, coreTotal);
+    }
+  });
+
+  document.getElementById('calcBtn').addEventListener('click', ()=>{
+    let area;
+    if(mode === 'budget'){
+      const budget = parseFloat(document.getElementById('budgetInput').value);
+      if(!budget || budget <= 0){
+        alert('Please enter your budget.');
+        return;
+      }
+      area = budget / selectedRate;
+      resultLabel.textContent = 'Estimated area you can build';
+      resultValue.textContent = Math.round(area).toLocaleString('en-IN') + ' sq ft';
+      resultNote.textContent = `Based on ${formatINR(selectedRate)}/sq ft for your selected quality level.`;
+    } else {
+      area = parseFloat(document.getElementById('areaInput').value);
+      if(!area || area <= 0){
+        alert('Please enter your built-up area.');
+        return;
+      }
+      const cost = area * selectedRate;
+      resultLabel.textContent = 'Estimated construction cost';
+      resultValue.textContent = formatINR(cost);
+      resultNote.textContent = `Based on ${formatINR(selectedRate)}/sq ft for your selected quality level.`;
+    }
+    updateMaterialAndTimeline(area);
+    resultCard.classList.add('show');
+
+    currentArea = area;
+    currentTier = selectedTier;
+    const detailSection = document.getElementById('detailSection');
+    if(detailSection.classList.contains('show')){
+      const coreTotal = renderDetailList(currentArea, currentTier);
+      renderAddons(currentTier, coreTotal);
+    }
+  });
+</script>
+</body>
+</html>
