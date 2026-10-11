@@ -64,6 +64,19 @@
 
   .empty-note{text-align:center; padding:30px 10px; color:var(--ink-soft); font-size:13px;}
 
+  .gallery-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px;}
+  .gallery-item{position:relative; aspect-ratio:1; border-radius:10px; overflow:hidden; border:1px solid var(--line);}
+  .gallery-item img{width:100%; height:100%; object-fit:cover; display:block;}
+  .gallery-item .remove-x{
+    position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%;
+    background:rgba(28,28,30,.75); color:#fff; border:none; font-size:14px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .gallery-add{
+    aspect-ratio:1; border:2px dashed var(--line); border-radius:10px; display:flex;
+    align-items:center; justify-content:center; font-size:26px; color:var(--ink-soft); background:none; width:100%;
+  }
+
   .bottomnav{
     position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
     display:flex; z-index:60; padding:6px 0 8px;
@@ -107,15 +120,27 @@
   <div id="businessesList"><div class="empty-note">Loading...</div></div>
 </div>
 
+<!-- DESIGN GALLERY -->
+<div class="tab-content" id="tab-gallery">
+  <div class="section-title">Design Gallery</div>
+  <p style="font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;">These photos show up on the customer-facing Calculator page. Tap a photo to remove it. You can select several at once when adding.</p>
+  <div class="gallery-grid" id="designGalleryGrid"></div>
+  <input type="file" id="galleryFileInput" accept="image/*" multiple style="display:none;">
+</div>
+
 <div class="bottomnav">
   <button data-tab="overview"><span class="nav-icon">📊</span>Overview</button>
   <button data-tab="businesses" class="active"><span class="nav-icon">🏪</span>Shopkeepers</button>
+  <button data-tab="gallery"><span class="nav-icon">🖼️</span>Gallery</button>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getFirestore, doc, getDoc, updateDoc, collection, getDocs, addDoc, deleteDoc,
+    query, orderBy, Timestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAh424CiFY1bR6iSrnQ3W7Gm3ITphktlbY",
@@ -128,6 +153,19 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  const CLOUD_NAME = "kvho2vpu";
+  const UPLOAD_PRESET = "buildmaterial";
+
+  async function uploadToCloudinary(file){
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:'POST', body: formData });
+    const data = await res.json();
+    if(!res.ok || !data.secure_url) throw new Error("Upload failed");
+    return data.secure_url;
+  }
 
   // Must match the list in admin-login.html
   const ADMIN_EMAILS = ["admin@buildmaterial.com", "sir@buildmaterial.com"];
@@ -142,6 +180,9 @@
       document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+      if(btn.dataset.tab === 'gallery'){
+        loadDesignGallery();
+      }
     });
   });
 
@@ -285,7 +326,70 @@
       alert("Action failed. Please try again.");
     }
   }
+
+  // ==================== DESIGN GALLERY ====================
+  async function loadDesignGallery(){
+    const grid = document.getElementById('designGalleryGrid');
+    grid.innerHTML = `<div class="empty-note">Loading...</div>`;
+    const q = query(collection(db, "designGallery"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    grid.innerHTML = '';
+    snap.forEach(docSnap=>{
+      const d = docSnap.data();
+      const item = document.createElement('div');
+      item.className = 'gallery-item';
+      item.innerHTML = `<img src="${d.url}"><button type="button" class="remove-x" data-id="${docSnap.id}">×</button>`;
+      grid.appendChild(item);
+    });
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'gallery-add';
+    addBtn.id = 'galleryAddBtn';
+    addBtn.textContent = '+';
+    grid.appendChild(addBtn);
+
+    grid.querySelectorAll('.remove-x').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm("Remove this design photo?")) return;
+        try{
+          await deleteDoc(doc(db, "designGallery", btn.dataset.id));
+          await loadDesignGallery();
+        }catch(err){
+          console.error(err);
+          alert("Couldn't remove photo. Please try again.");
+        }
+      });
+    });
+  }
+
+  // Delegated listener so the "+" button always works, even after re-renders
+  document.getElementById('designGalleryGrid').addEventListener('click', (e)=>{
+    if(e.target && e.target.id === 'galleryAddBtn'){
+      document.getElementById('galleryFileInput').click();
+    }
+  });
+
+  document.getElementById('galleryFileInput').addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if(files.length === 0) return;
+
+    const addBtn = document.getElementById('galleryAddBtn');
+    if(addBtn){ addBtn.textContent = '…'; addBtn.disabled = true; }
+
+    for(const file of files){
+      try{
+        const url = await uploadToCloudinary(file);
+        await addDoc(collection(db, "designGallery"), {
+          url: url,
+          createdAt: Timestamp.now()
+        });
+      }catch(err){
+        console.error(err);
+      }
+    }
+    await loadDesignGallery();
+  });
 </script>
 </body>
-  </html>
-  
+</html>
