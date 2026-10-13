@@ -81,12 +81,18 @@
 
   .sticky-bottom{
     position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
-    padding:12px 16px; z-index:60;
+    padding:12px 16px; z-index:60; display:flex; gap:10px;
   }
   .btn-solid{
-    width:100%; padding:14px; border-radius:12px; border:none; background:var(--saffron);
+    flex:1; padding:14px; border-radius:12px; border:none; background:var(--saffron);
     color:#fff; font-size:15px; font-weight:700; font-family:'Inter',sans-serif;
   }
+  .btn-wa-send{
+    flex:1; padding:14px; border-radius:12px; border:none; background:var(--whatsapp);
+    color:#fff; font-size:14px; font-weight:700; font-family:'Inter',sans-serif;
+    display:none; align-items:center; justify-content:center; gap:6px;
+  }
+  .btn-wa-send.show{display:flex;}
 
   .modal-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:100; align-items:flex-end;}
   .modal-overlay.open{display:flex;}
@@ -117,6 +123,7 @@
 
 <div class="sticky-bottom">
   <button class="btn-solid" id="openEnquiryBtn">Send Enquiry</button>
+  <button class="btn-wa-send" id="waSendBtn">📲 Send on WhatsApp</button>
 </div>
 
 <!-- ENQUIRY MODAL -->
@@ -128,7 +135,7 @@
     <div class="field"><label>Your Name *</label><input type="text" id="eq_name" placeholder="Your full name"></div>
     <div class="field"><label>Your Phone *</label><input type="tel" id="eq_phone" placeholder="10-digit mobile number"></div>
     <div class="field"><label>Your Message *</label><textarea id="eq_message" style="min-height:80px;" placeholder="e.g. I need 50 bags of cement, please share rate."></textarea></div>
-    <button class="btn-solid" id="sendEnquiryBtn">Send Enquiry</button>
+    <button class="btn-solid" id="sendEnquiryBtn" style="width:100%;">Send Enquiry</button>
   </div>
 </div>
 
@@ -144,7 +151,7 @@
       <div id="starPicker" style="font-size:28px; letter-spacing:6px; color:#F5A623; cursor:pointer;">☆☆☆☆☆</div>
     </div>
     <div class="field"><label>Your Review *</label><textarea id="rv_comment" style="min-height:70px;" placeholder="How was your experience with this shop?"></textarea></div>
-    <button class="btn-solid" id="submitReviewBtn">Submit Review</button>
+    <button class="btn-solid" id="submitReviewBtn" style="width:100%;">Submit Review</button>
   </div>
 </div>
 
@@ -166,6 +173,7 @@
   const urlParams = new URLSearchParams(window.location.search);
   const shopId = urlParams.get('id');
   let shopName = 'Shop';
+  let shopWhatsapp = '';
 
   if(!shopId){
     document.getElementById('shopContent').innerHTML = `<div style="padding:40px 16px; text-align:center;">Shop not found.</div>`;
@@ -181,6 +189,7 @@
     }
     const shop = snap.data();
     shopName = shop.businessName || 'Shop';
+    shopWhatsapp = shop.shopWhatsapp || '';
 
     const galleryHtml = (shop.gallery && shop.gallery.length > 0)
       ? shop.gallery.map(url => `<img src="${url}">`).join('')
@@ -305,6 +314,7 @@
 
   // ---- Enquiry modal ----
   const enquiryModal = document.getElementById('enquiryModal');
+  const waSendBtn = document.getElementById('waSendBtn');
   document.getElementById('openEnquiryBtn').addEventListener('click', ()=> enquiryModal.classList.add('open'));
   document.getElementById('closeEnquiryModal').addEventListener('click', ()=> enquiryModal.classList.remove('open'));
 
@@ -336,6 +346,14 @@
 
       msgEl.textContent = "Enquiry sent! The shopkeeper will contact you soon.";
       msgEl.className = "msg success";
+
+      // Show one-tap WhatsApp button so the customer can also notify the shopkeeper instantly
+      if(shopWhatsapp){
+        const waText = encodeURIComponent(`New enquiry from ${name} (${phone}) via BuildMaterial:\n${message}`);
+        waSendBtn.onclick = ()=> window.open(`https://wa.me/91${shopWhatsapp}?text=${waText}`, '_blank');
+        waSendBtn.classList.add('show');
+      }
+
       document.getElementById('eq_name').value = '';
       document.getElementById('eq_phone').value = '';
       document.getElementById('eq_message').value = '';
@@ -397,7 +415,6 @@
         createdAt: Timestamp.now()
       });
 
-      // Update shop's average rating
       const shopRef = doc(db, "businesses", shopId);
       const shopSnap = await getDoc(shopRef);
       const shopData = shopSnap.data();
@@ -423,5 +440,5 @@
   });
 </script>
 </body>
-                                                     </html>
+      </html>
   
